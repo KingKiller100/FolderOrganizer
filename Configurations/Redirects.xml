@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Folders>
+    <Folder name="Pictures">
+        <Extensions>
+            <Extension>png</Extension>
+            <Extension>jpg</Extension>
+            <Extension>jpeg</Extension>
+        </Extensions>
+    </Folder>
+    <Folder name="Apps">
+        <Extensions>
+            <Extension>exe</Extension>
+            <Extension>msi</Extension>
+        </Extensions>
+    </Folder>
+</Folders>
