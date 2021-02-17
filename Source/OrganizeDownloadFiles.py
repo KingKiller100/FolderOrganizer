@@ -8,46 +8,52 @@ import time
 import xml.etree.ElementTree as ET
 
 # Impl
+cwd = os.getcwd()
+configFolder = cwd + "/../Configurations"
+
+
 class FolderConfig:
     def __init__(self):
         self.ReadConfig()
 
     def ReadConfig(self):
-        cwd = os.getcwd()
-        file = open(cwd + "/Paths.ini", "r")
-        lines = file.readlines();
+        file = open(configFolder + "/Paths.ini", "r")
+        lines = file.readlines()
         for line in lines:
-            line.replace(" ", "")
             split = line.split(":", 1)
             key = split[0]
             path = split[1]
+            key = key.replace(" ", "")
+            path = path.replace(" ", "")
+            path = path.strip()
 
             if key.lower() == "source":
-                source = path
+                self.source = path
             else:
-                destination = path
+                self.destination = path
 
     source = str()
     destination = str()
 
+
 class RedirectConfig:
-    redirects = dict()
-            
     def __init__(self):
         self.ReadConfig()
 
     def ReadConfig(self):
-        cwd = os.getcwd()
-        file = ET.parse(cwd + "/Redirect.xml")
+        file = ET.parse(configFolder + "/Redirects.xml")
         root = file.getroot()
-        extList = list()
         for folderItem in root.findall("Folder"):
+            extList = []
             folder = folderItem.attrib["name"]
-            for extItem in folderItem.findall("Extensions"):
-                ext = extItem.text()
-                extList.append(ext)
-            redirects[folder] = extList
-        
+            for extsItem in folderItem.findall("Extensions"):
+                for extItem in extsItem.findall("Extension"):
+                    ext = extItem.text
+                    extList.append(ext)
+            self.redirects[folder] = extList
+
+    redirects = {}
+
 
 class MyHandler(FileSystemEventHandler):
     def MoveFile(self, src, dest, copyNum):
@@ -69,35 +75,41 @@ class MyHandler(FileSystemEventHandler):
         except:
             print("Error: unable to move file: " + src)
 
-
     def on_modified(self, event):
-        for filename in os.listdir(FolderConfig.source):
-            srcFilepath = FolderConfig.source + "/" + filename
+        for filename in os.listdir(folderConfig.source):
+            srcFilepath = folderConfig.source + "/" + filename
             destDirectory = str()
 
-            for (path, exts) in destFolders.items():
+            found = False
+            for (path, exts) in redirConfifg.redirects.items():
                 for ext in exts:
                     if (filename.lower().endswith(ext)):
-                        destDirectory = path
+                        destDirectory = "{}/{}".format(folderConfig.destination, path)
                         print("Extension match: '{}' ".format(ext))
                         print("Path: '{}'".format(srcFilepath))
 
-            if (len(destDirectory) > 0):
-                destPath = destDirectory + "/" + filename
-                self.MoveFile(srcFilepath, destPath, 1)
+                        destPath = destDirectory + "/" + filename
+                        self.MoveFile(srcFilepath, destPath, 1)
+                        found = True
+                        break
+                if found:
+                    break
+
+
+
 
 # Main
 event_handler = MyHandler()
 
 folderConfig = FolderConfig()
-redirectConfig = RedirectConfig()
+redirConfifg = RedirectConfig()
 
 observer = Observer()
-observer.schedule(event_handler, FolderConfig.source, recursive=True)
+observer.schedule(event_handler, folderConfig.source, recursive=True)
 observer.start()
 
 try:
-    for (path, exts) in redirectConfig.items():
+    for (path, exts) in redirConfifg.redirects.items():
         dest = "{}/{}".format(folderConfig.destination, path)
         for ext in exts:
             os.makedirs(dest, exist_ok=True)
