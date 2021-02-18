@@ -13,4 +13,11 @@
             <Extension>msi</Extension>
         </Extensions>
     </Folder>
+    <Folder name="Documents">
+        <Extensions>
+            <Extension>docx</Extension>
+            <Extension>doc</Extension>
+            <Extension>pdf</Extension>
+        </Extensions>
+    </Folder>
 </Folders>
