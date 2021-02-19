@@ -63,6 +63,8 @@ class RuntimeData:
         path = os.path.realpath(
             os.path.join(self.cwd, folderStr))
         print("Registered path: '{}'".format(path))
+        if not os.path.exists(path):
+            os.makedirs(path)
         return path
 
     def UpdateFlags(self):
