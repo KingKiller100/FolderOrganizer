@@ -143,7 +143,7 @@ class DirectoryEventHandler(FileSystemEventHandler):
         try:
             if not os.path.exists(dest):
                 shutil.move(src, dest)
-                print("New path file: {}".format(dest))
+                print("  - New path file: {}".format(dest))
             else:
                 split = dest.split('.')
                 pathNoExt = split[0]
@@ -174,7 +174,7 @@ class DirectoryEventHandler(FileSystemEventHandler):
                         destDirectory = os.path.join(
                             folderCfg.destination, path)
                         print("Extension match: '{}' ".format(ext))
-                        print("Path: '{}'".format(srcFilepath))
+                        print("  - Path: '{}'".format(srcFilepath))
 
                         destPath = os.path.join(destDirectory, filename)
                         self.MoveFile(srcFilepath, destPath, 1)
