@@ -3,15 +3,24 @@ from watchdog.events import FileSystemEventHandler
 
 import shutil
 import os
-import json
 import time
-import numpy
+import numpy as np
 import xml.etree.ElementTree as ET
 
-
 # Impl
-cwd = os.getcwd()
-configFolder = os.path.join(cwd, "../Configurations")
+
+
+class MyScriptData:
+    def __init__(self):
+        realpath = os.path.realpath(__file__)
+        self.cwd = os.path.dirname(realpath)
+        self.configFolder = os.path.realpath(
+            os.path.join(self.cwd, "../Configurations"))
+        print("Current working directory: {}".format(self.cwd))
+        print("Configuration path: {}".format(self.configFolder))
+
+    cwd: str
+    configFolder: str
 
 
 class ConfigPair:
@@ -25,7 +34,9 @@ class ConfigPair:
 
 class ConfigFileReader:
     @staticmethod
-    def Get(path, cb):
+    def ReadFile(filename, cb):
+        gh = myScript.configFolder
+        path = os.path.join(myScript.configFolder, filename)
         print("Reading configurations: " + path)
         file = open(path, "r")
         lines = file.readlines()
@@ -36,7 +47,7 @@ class ConfigFileReader:
                 continue
 
             split = line.split(":", 1)
-            
+
             key = split[0]
             key = key.replace(" ", "")
             key = key.lower()
@@ -59,8 +70,8 @@ class InternalConfig:
 
     def ReadConfig(self):
         print("Internals Configurations")
-        ConfigFileReader.Get(os.path.join(configFolder, "Internals.ini"),
-                             self.SetUpdateRate)
+        ConfigFileReader.ReadFile("Internals.ini",
+                                  self.SetUpdateRate)
 
     def Update(self):
         self.ReadConfig()
@@ -82,8 +93,8 @@ class FolderConfig:
         print("Folder Configurations")
         self.source = str()
         self.destination = str()
-        ConfigFileReader.Get(os.path.join(configFolder, "Paths.ini"),
-                             self.AssignPathCallback)
+        ConfigFileReader.ReadFile("Paths.ini",
+                                  self.AssignPathCallback)
 
     def SetSource(self, path):
         self.source = path
@@ -104,7 +115,7 @@ class RedirectConfig:
     def ReadConfig(self):
         print("File redirect Configurations")
         try:
-            elemTree = ET.parse(configFolder + self.settingsFile)
+            elemTree = ET.parse(myScript.configFolder + self.settingsFile)
             self.redirects = {}
             root = elemTree.getroot()
             for folderItem in root.findall("Folder"):
@@ -127,7 +138,7 @@ class RedirectConfig:
     redirects = {}
 
 
-class MyHandler(FileSystemEventHandler):
+class DirectoryEventHandler(FileSystemEventHandler):
     def MoveFile(self, src, dest, copyNum):
         try:
             if not os.path.exists(dest):
@@ -145,7 +156,7 @@ class MyHandler(FileSystemEventHandler):
                 dest = "{}{}{}".format(pathNoExt, copyNum, ext)
                 self.MoveFile(src, dest, copyNum + 1)
         except:
-            print("[Error] unable to move file: " + src)
+            print("[Error] unable to move file: {}\n".format(src))
 
     def Organize(self):
         self.handled = True
@@ -178,6 +189,7 @@ class MyHandler(FileSystemEventHandler):
             self.Organize()
 
     handled = False
+
 
 class FolderManager:
     @staticmethod
@@ -227,10 +239,11 @@ class FolderManager:
             os.makedirs(path)
             print("Created directory: " + path)
 
+
 def Run():
     print("Entering loop")
-    
-    iteration = 0
+
+    iteration = np.uint64(0)
     while True:
         ++iteration
         FolderManager.SantizeSubFolders()
@@ -239,28 +252,34 @@ def Run():
 
         internalCfg.Update()
         redirCfg.Update()
-        event_handler.Organize()
+        dirEventHandler.Organize()
         time.sleep(int(internalCfg.updateRate))
         print("Run {}".format(iteration))
     print("Loop terminated")
 
 
 # Main
-event_handler = MyHandler()
+dirEventHandler = DirectoryEventHandler()
 
+myScript = MyScriptData()
 internalCfg = InternalConfig()
 folderCfg = FolderConfig()
 redirCfg = RedirectConfig()
 
 observer = Observer()
-observer.schedule(event_handler, folderCfg.source, recursive=True)
-observer.start()
 
-try:
-    Run()
-except Exception as e:
-    print(e)
-    observer.stop()
+def main():
+    observer.schedule(dirEventHandler, folderCfg.source, recursive=True)
+    observer.start()
 
-print("Observer joining")
-observer.join()
+    try:
+        Run()
+    except Exception as e:
+        print(e)
+        observer.stop()
+
+    print("Observer joining")
+    observer.join()
+
+
+main()
