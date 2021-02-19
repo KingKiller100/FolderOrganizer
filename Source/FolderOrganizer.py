@@ -5,11 +5,13 @@ import shutil
 import os
 import json
 import time
+import numpy
 import xml.etree.ElementTree as ET
+
 
 # Impl
 cwd = os.getcwd()
-configFolder = cwd + "/../Configurations"
+configFolder = os.path.join(cwd, "../Configurations")
 
 
 class ConfigPair:
@@ -19,6 +21,7 @@ class ConfigPair:
 
     key: str
     value: str
+
 
 class ConfigFileReader:
     @staticmethod
@@ -33,14 +36,19 @@ class ConfigFileReader:
                 continue
 
             split = line.split(":", 1)
+            
             key = split[0]
-            value = split[1]
             key = key.replace(" ", "")
+            key = key.lower()
+
+            value = split[1]
             value = value.replace(" ", "")
             value = value.strip()
-            config = ConfigPair(key.lower(), value)
+            config = ConfigPair(key, value)
+            print("  - [{}, {}]".format(key, value))
             cb(config)
         file.close()
+
 
 class InternalConfig:
     def __init__(self):
@@ -51,7 +59,7 @@ class InternalConfig:
 
     def ReadConfig(self):
         print("Internals Configurations")
-        ConfigFileReader.Get(configFolder + "/Internals.ini",
+        ConfigFileReader.Get(os.path.join(configFolder, "Internals.ini"),
                              self.SetUpdateRate)
 
     def Update(self):
@@ -74,7 +82,7 @@ class FolderConfig:
         print("Folder Configurations")
         self.source = str()
         self.destination = str()
-        ConfigFileReader.Get(configFolder + "/Paths.ini",
+        ConfigFileReader.Get(os.path.join(configFolder, "Paths.ini"),
                              self.AssignPathCallback)
 
     def SetSource(self, path):
@@ -139,26 +147,102 @@ class MyHandler(FileSystemEventHandler):
         except:
             print("[Error] unable to move file: " + src)
 
-    def on_modified(self, event):
+    def Organize(self):
+        self.handled = True
         for filename in os.listdir(folderCfg.source):
-            srcFilepath = folderCfg.source + "/" + filename
+            srcFilepath = os.path.join(folderCfg.source, filename)
+            if not os.path.isfile(srcFilepath):
+                continue
+
             destDirectory = str()
 
             found = False
             for (path, exts) in redirCfg.redirects.items():
                 for ext in exts:
                     if (filename.lower().endswith(ext)):
-                        destDirectory = "{}/{}".format(
+                        destDirectory = os.path.join(
                             folderCfg.destination, path)
                         print("Extension match: '{}' ".format(ext))
                         print("Path: '{}'".format(srcFilepath))
 
-                        destPath = destDirectory + "/" + filename
+                        destPath = os.path.join(destDirectory, filename)
                         self.MoveFile(srcFilepath, destPath, 1)
                         found = True
                         break
                 if found:
                     break
+        self.handled = False
+
+    def on_modified(self, event):
+        if not self.handled:
+            self.Organize()
+
+    handled = False
+
+class FolderManager:
+    @staticmethod
+    def SanitizeDestDir():
+        for fdr in os.listdir(folderCfg.destination):
+            path = os.path.join(folderCfg.destination, fdr)
+            if not os.path.isdir(path):
+                continue
+
+            toDelete = True
+            for f in redirCfg.redirects.keys():
+                if (fdr.endswith(f)):
+                    toDelete = False
+                    break
+
+            if toDelete:
+                os.rmdir(path)
+
+    @staticmethod
+    def SantizeSubFolders():
+        for (fdr, exts) in redirCfg.redirects.items():
+            path = os.path.join(folderCfg.destination, fdr)
+
+            if not os.path.exists(path):
+                continue
+            if not os.path.isdir(path):
+                continue
+
+            for file in os.listdir(path):
+                match = False
+                for ext in exts:
+                    if (file.endswith(ext)):
+                        match = True
+                        break
+                if not (match):
+                    filepath = "{}/{}".format(path, file)
+                    shutil.move(filepath, folderCfg.source)
+
+    @staticmethod
+    def MakeSubDirs():
+        for (fdr, exts) in redirCfg.redirects.items():
+            path = os.path.join(folderCfg.destination, fdr)
+
+            if os.path.exists(path):
+                continue
+
+            os.makedirs(path)
+            print("Created directory: " + path)
+
+def Run():
+    print("Entering loop")
+    
+    iteration = 0
+    while True:
+        ++iteration
+        FolderManager.SantizeSubFolders()
+        FolderManager.SanitizeDestDir()
+        FolderManager.MakeSubDirs()
+
+        internalCfg.Update()
+        redirCfg.Update()
+        event_handler.Organize()
+        time.sleep(int(internalCfg.updateRate))
+        print("Run {}".format(iteration))
+    print("Loop terminated")
 
 
 # Main
@@ -173,14 +257,9 @@ observer.schedule(event_handler, folderCfg.source, recursive=True)
 observer.start()
 
 try:
-    print("Entering loop")
-
-    while True:
-        time.sleep(int(internalCfg.updateRate))
-        redirCfg.Update()
-        internalCfg.Update()
-    print("Loop terminated")
-except:
+    Run()
+except Exception as e:
+    print(e)
     observer.stop()
 
 print("Observer joining")
