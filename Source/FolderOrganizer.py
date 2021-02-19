@@ -1,6 +1,7 @@
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+# import logging
 import shutil
 import os
 import time
@@ -16,8 +17,9 @@ class MyScriptData:
         self.cwd = os.path.dirname(realpath)
         self.configFolder = os.path.realpath(
             os.path.join(self.cwd, "../Configurations"))
-        print("Current working directory: {}".format(self.cwd))
-        print("Configuration path: {}".format(self.configFolder))
+        # logging.Logger.info("Current working directory: %s", self.cwd)
+        print("Current working directory: '{}'".format(self.cwd))
+        print("Configuration path: '{}'".format(self.configFolder))
 
     cwd: str
     configFolder: str
@@ -37,7 +39,7 @@ class ConfigFileReader:
     def ReadFile(filename, cb):
         gh = myScript.configFolder
         path = os.path.join(myScript.configFolder, filename)
-        print("Reading configurations: " + path)
+        print("Reading configurations: '{}'".format(path))
         file = open(path, "r")
         lines = file.readlines()
         for line in lines:
@@ -63,10 +65,12 @@ class ConfigFileReader:
 
 class InternalConfig:
     def __init__(self):
+        self.updateRate = 300
         self.ReadConfig()
 
     def SetUpdateRate(self, cfg: ConfigPair):
-        self.updateRate = int(cfg.value)
+        if int(cfg.value) > 0:
+            self.updateRate = int(cfg.value)
 
     def ReadConfig(self):
         print("Internals Configurations")
@@ -143,7 +147,7 @@ class DirectoryEventHandler(FileSystemEventHandler):
         try:
             if not os.path.exists(dest):
                 shutil.move(src, dest)
-                print("  - New path file: {}".format(dest))
+                print("  - New path file: '{}'".format(dest))
             else:
                 split = dest.split('.')
                 pathNoExt = split[0]
@@ -156,24 +160,27 @@ class DirectoryEventHandler(FileSystemEventHandler):
                 dest = "{}{}{}".format(pathNoExt, copyNum, ext)
                 self.MoveFile(src, dest, copyNum + 1)
         except:
-            print("[Error] unable to move file: {}\n".format(src))
+            print("[Error] unable to move file: '{}'\n".format(src))
 
     def Organize(self):
+        if self.handled == True:
+            return
+
+        FolderManager.MakeSubDirs()
         self.handled = True
         for filename in os.listdir(folderCfg.source):
             srcFilepath = os.path.join(folderCfg.source, filename)
             if not os.path.isfile(srcFilepath):
                 continue
 
-            destDirectory = str()
-
             found = False
+            destDirectory = str()
             for (path, exts) in redirCfg.redirects.items():
                 for ext in exts:
                     if (filename.lower().endswith(ext)):
                         destDirectory = os.path.join(
                             folderCfg.destination, path)
-                        print("Extension match: '{}' ".format(ext))
+                        print("Extension match: '{}'".format(ext))
                         print("  - Path: '{}'".format(srcFilepath))
 
                         destPath = os.path.join(destDirectory, filename)
@@ -194,19 +201,25 @@ class DirectoryEventHandler(FileSystemEventHandler):
 class FolderManager:
     @staticmethod
     def SanitizeDestDir():
-        for fdr in os.listdir(folderCfg.destination):
+        fdrs = os.listdir(folderCfg.destination)
+        for fdr in fdrs:
             path = os.path.join(folderCfg.destination, fdr)
             if not os.path.isdir(path):
                 continue
 
-            toDelete = True
+            deleteFolder = True
             for f in redirCfg.redirects.keys():
                 if (fdr.endswith(f)):
-                    toDelete = False
+                    deleteFolder = False
                     break
 
-            if toDelete:
+            if deleteFolder:
+                for file in os.listdir(path):
+                    filepath = os.path.join(path, file)
+                    shutil.move(filepath, folderCfg.destination)
+
                 os.rmdir(path)
+                    
 
     @staticmethod
     def SantizeSubFolders():
@@ -219,13 +232,13 @@ class FolderManager:
                 continue
 
             for file in os.listdir(path):
-                match = False
+                moveFile = True
                 for ext in exts:
                     if (file.endswith(ext)):
-                        match = True
+                        moveFile = False
                         break
-                if not (match):
-                    filepath = "{}/{}".format(path, file)
+                if (moveFile):
+                    filepath = os.path.join(path, file)
                     shutil.move(filepath, folderCfg.source)
 
     @staticmethod
@@ -237,7 +250,7 @@ class FolderManager:
                 continue
 
             os.makedirs(path)
-            print("Created directory: " + path)
+            print("Created directory: '{}'".format(path))
 
 
 def Run():
@@ -245,16 +258,15 @@ def Run():
 
     iteration = np.uint64(0)
     while True:
+        print("Run: {}".format(iteration))
         ++iteration
         FolderManager.SantizeSubFolders()
         FolderManager.SanitizeDestDir()
-        FolderManager.MakeSubDirs()
 
         internalCfg.Update()
         redirCfg.Update()
         dirEventHandler.Organize()
         time.sleep(int(internalCfg.updateRate))
-        print("Run {}".format(iteration))
     print("Loop terminated")
 
 

@@ -7,7 +7,7 @@
             <Extension>jpeg</Extension>
         </Extensions>
     </Folder>
-    <Folder name="Apps">
+    <Folder name="Executables">
         <Extensions>
             <Extension>exe</Extension>
             <Extension>msi</Extension>
