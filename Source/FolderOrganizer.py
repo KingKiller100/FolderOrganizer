@@ -20,7 +20,7 @@ class ConfigPair:
     value: str
 
 
-class ConfigFileReader:
+class IniFileParser:
     @staticmethod
     def ReadFile(filename, cb):
         gh = runData.configFolder
@@ -102,7 +102,7 @@ class Logger:
             self.level = int(cfg.value)
 
     def ReadConfig(self):
-        ConfigFileReader.ReadFile("Logging.ini", self.ReadConfigCallBack)
+        IniFileParser.ReadFile("Logging.ini", self.ReadConfigCallBack)
 
     def Dbg(self, msg):
         print(msg)
@@ -138,7 +138,7 @@ class InternalConfig:
 
     def ReadConfig(self):
         logger.Inf("Internals Configurations")
-        ConfigFileReader.ReadFile("Internals.ini",
+        IniFileParser.ReadFile("Internals.ini",
                                   self.SetUpdateRate)
 
     def Update(self):
@@ -161,7 +161,7 @@ class FolderConfig:
         logger.Inf("Folder Configurations")
         self.source = str()
         self.destination = str()
-        ConfigFileReader.ReadFile("Paths.ini",
+        IniFileParser.ReadFile("Paths.ini",
                                   self.AssignPathCallback)
 
     def SetSource(self, path):
