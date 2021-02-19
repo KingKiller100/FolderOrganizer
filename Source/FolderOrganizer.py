@@ -1,7 +1,7 @@
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-# import logging
+import logging
 import shutil
 import os
 import time
@@ -9,20 +9,6 @@ import numpy as np
 import xml.etree.ElementTree as ET
 
 # Impl
-
-
-class MyScriptData:
-    def __init__(self):
-        realpath = os.path.realpath(__file__)
-        self.cwd = os.path.dirname(realpath)
-        self.configFolder = os.path.realpath(
-            os.path.join(self.cwd, "../Configurations"))
-        # logging.Logger.info("Current working directory: %s", self.cwd)
-        print("Current working directory: '{}'".format(self.cwd))
-        print("Configuration path: '{}'".format(self.configFolder))
-
-    cwd: str
-    configFolder: str
 
 
 class ConfigPair:
@@ -37,8 +23,8 @@ class ConfigPair:
 class ConfigFileReader:
     @staticmethod
     def ReadFile(filename, cb):
-        gh = myScript.configFolder
-        path = os.path.join(myScript.configFolder, filename)
+        gh = runData.configFolder
+        path = os.path.join(runData.configFolder, filename)
         print("Reading configurations: '{}'".format(path))
         file = open(path, "r")
         lines = file.readlines()
@@ -63,24 +49,100 @@ class ConfigFileReader:
         file.close()
 
 
+class RuntimeData:
+    def __init__(self):
+        realpath = os.path.realpath(__file__)
+        self.cwd = os.path.dirname(realpath)
+        print("Current working directory: '{}'".format(self.cwd))
+
+        self.configFolder = self.AssignFolderPath("../Configurations")
+        self.flagsFolder = self.AssignFolderPath("../Flags")
+        self.logFolder = self.AssignFolderPath("../Logs")
+
+    def AssignFolderPath(self, folderStr):
+        path = os.path.realpath(
+            os.path.join(self.cwd, folderStr))
+        print("Registered path: '{}'".format(path))
+        return path
+
+    def UpdateFlags(self):
+        if not os.path.exists(self.flagsFolder):
+            msg = "No flags folder found"
+            logger.Crt(msg)
+            raise FileExistsError(msg)
+
+        for file in os.listdir(self.flagsFolder):
+            if file.upper() == "TERMINATE":
+                self.running = False
+                os.remove(file)
+                logger.Inf("Terminate flag found")
+
+    def InitializeLogging(self, filename):
+        path = os.path.join(self.logFolder, filename)
+        logging.basicConfig(level=logging.INFO, filename=path)
+
+    cwd = str()
+    configFolder = str()
+    logFolder = str()
+    flagsFolder = str()
+    running = True
+
+
+class Logger:
+    def __init__(self, name, filename):
+        self.ReadConfig()
+        msgFormat = "[%(asctime)s] - [%(levelname)s]: %(message)s"
+        path = os.path.join(runData.logFolder, filename)
+        logging.basicConfig(filename=path, level=self.level, format=msgFormat)
+
+    def ReadConfigCallBack(self, cfg: ConfigPair):
+        if cfg.key == "level":
+            self.level = int(cfg.value)
+
+    def ReadConfig(self):
+        ConfigFileReader.ReadFile("Logging.ini", self.ReadConfigCallBack)
+
+    def Dbg(self, msg):
+        print(msg)
+        logging.debug(msg)
+
+    def Inf(self, msg):
+        print(msg)
+        logging.info(msg)
+
+    def Wrn(self, msg):
+        print(msg)
+        logging.warning(msg)
+
+    def Err(self, msg):
+        print(msg)
+        logging.error(msg)
+
+    def Crt(self, msg):
+        print(msg)
+        logging.critical(msg)
+
+    level: int
+
+
 class InternalConfig:
     def __init__(self):
-        self.updateRate = 300
         self.ReadConfig()
 
     def SetUpdateRate(self, cfg: ConfigPair):
-        if int(cfg.value) > 0:
+        dayInSecs = 60*60*24  # Max update rate is 1 day(s)
+        if int(cfg.value) > 0 and int(cfg.value) <= dayInSecs:
             self.updateRate = int(cfg.value)
 
     def ReadConfig(self):
-        print("Internals Configurations")
+        logger.Inf("Internals Configurations")
         ConfigFileReader.ReadFile("Internals.ini",
                                   self.SetUpdateRate)
 
     def Update(self):
         self.ReadConfig()
 
-    updateRate: int
+    updateRate = 300
 
 
 class FolderConfig:
@@ -94,7 +156,7 @@ class FolderConfig:
             self.SetDestination(config.value)
 
     def ReadConfig(self):
-        print("Folder Configurations")
+        logger.Inf("Folder Configurations")
         self.source = str()
         self.destination = str()
         ConfigFileReader.ReadFile("Paths.ini",
@@ -117,23 +179,23 @@ class RedirectConfig:
         self.ReadConfig()
 
     def ReadConfig(self):
-        print("File redirect Configurations")
+        logger.Inf("File redirect Configurations")
         try:
-            elemTree = ET.parse(myScript.configFolder + self.settingsFile)
+            elemTree = ET.parse(runData.configFolder + self.settingsFile)
             self.redirects = {}
             root = elemTree.getroot()
             for folderItem in root.findall("Folder"):
                 extList = []
                 folder = folderItem.attrib["name"]
-                print("Folder: " + folder)
+                logger.Inf("Folder: " + folder)
                 for extsItem in folderItem.findall("Extensions"):
                     for extItem in extsItem.findall("Extension"):
                         ext = extItem.text
                         extList.append(ext)
-                        print("  - Extension: " + ext)
+                        logger.Inf("  - Extension: " + ext)
                 self.redirects[folder] = extList
         except:
-            print("Problem reading file: " + self.settingsFile)
+            logger.Err("Problem reading file: " + self.settingsFile)
 
     def Update(self):
         self.ReadConfig()
@@ -147,7 +209,7 @@ class DirectoryEventHandler(FileSystemEventHandler):
         try:
             if not os.path.exists(dest):
                 shutil.move(src, dest)
-                print("  - New path file: '{}'".format(dest))
+                logger.Inf("  - New path file: '{}'".format(dest))
             else:
                 split = dest.split('.')
                 pathNoExt = split[0]
@@ -160,7 +222,7 @@ class DirectoryEventHandler(FileSystemEventHandler):
                 dest = "{}{}{}".format(pathNoExt, copyNum, ext)
                 self.MoveFile(src, dest, copyNum + 1)
         except:
-            print("[Error] unable to move file: '{}'\n".format(src))
+            logger.Err("[Error] unable to move file: '{}'\n".format(src))
 
     def Organize(self):
         if self.handled == True:
@@ -173,15 +235,15 @@ class DirectoryEventHandler(FileSystemEventHandler):
             if not os.path.isfile(srcFilepath):
                 continue
 
-            found = False
             destDirectory = str()
             for (path, exts) in redirCfg.redirects.items():
+                found = False
                 for ext in exts:
                     if (filename.lower().endswith(ext)):
                         destDirectory = os.path.join(
                             folderCfg.destination, path)
-                        print("Extension match: '{}'".format(ext))
-                        print("  - Path: '{}'".format(srcFilepath))
+                        logger.Inf("Extension match: '{}'".format(ext))
+                        logger.Inf("  - Path: '{}'".format(srcFilepath))
 
                         destPath = os.path.join(destDirectory, filename)
                         self.MoveFile(srcFilepath, destPath, 1)
@@ -219,7 +281,6 @@ class FolderManager:
                     shutil.move(filepath, folderCfg.destination)
 
                 os.rmdir(path)
-                    
 
     @staticmethod
     def SantizeSubFolders():
@@ -254,31 +315,38 @@ class FolderManager:
 
 
 def Run():
-    print("Entering loop")
+    logger.Dbg("Entering loop")
 
     iteration = np.uint64(0)
-    while True:
-        print("Run: {}".format(iteration))
-        ++iteration
+    while runData.running:
+        runData.UpdateFlags()
+        logger.Dbg("Run: {}".format(iteration))
+        iteration = ++iteration
+
         FolderManager.SantizeSubFolders()
         FolderManager.SanitizeDestDir()
 
         internalCfg.Update()
         redirCfg.Update()
         dirEventHandler.Organize()
-        time.sleep(int(internalCfg.updateRate))
-    print("Loop terminated")
+
+        updateTime = internalCfg.updateRate
+        logger.Inf("Thread sleep time: {}".format(updateTime))
+        time.sleep(updateTime)
+    logger.Dbg("Loop terminated")
 
 
 # Main
-dirEventHandler = DirectoryEventHandler()
+runData = RuntimeData()
 
-myScript = MyScriptData()
+logger = Logger("App", "Logs.txt")
+dirEventHandler = DirectoryEventHandler()
 internalCfg = InternalConfig()
 folderCfg = FolderConfig()
 redirCfg = RedirectConfig()
 
 observer = Observer()
+
 
 def main():
     observer.schedule(dirEventHandler, folderCfg.source, recursive=True)
