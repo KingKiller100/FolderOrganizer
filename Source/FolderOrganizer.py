@@ -1,8 +1,9 @@
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-import logging
+import threading
 import shutil
+import logging
 import os
 import time
 import numpy as np
@@ -59,6 +60,8 @@ class RuntimeData:
         self.flagsFolder = self.AssignFolderPath("../Flags")
         self.logFolder = self.AssignFolderPath("../Logs")
 
+        self.InitializeFlagCallBacks()
+
     def AssignFolderPath(self, folderStr):
         path = os.path.realpath(
             os.path.join(self.cwd, folderStr))
@@ -74,22 +77,36 @@ class RuntimeData:
             raise FileExistsError(msg)
 
         for file in os.listdir(self.flagsFolder):
-            if file.upper() == "TERMINATE":
-                self.running = False
-                path = os.path.join(self.flagsFolder, file)
-                os.remove(path)
-                logger.Inf("Terminate flag found")
+            for (flag, cb) in self.flagsCallbacks:
+                if file.upper() == flag:
+                    path = os.path.join(self.flagsFolder, file)
+                    os.remove(path)
+                    logger.Inf("{} flag found".format(flag))
 
     def InitializeLogging(self, filename):
         path = os.path.join(self.logFolder, filename)
         logging.basicConfig(level=logging.INFO, filename=path)
+
+    def InitializeFlagCallBacks(self):
+        self.AddFlagCB("TERMINATE", self.TerminateApp)
+        self.AddFlagCB("FORCE_UPDATE", self.ForceUpdate)
+
+    def AddFlagCB(self, flag : str, cb):
+        self.flagsCallbacks[flag] = cb
+
+    def TerminateApp(self):
+        self.running = False
+
+    def ForceUpdate(self):
+        self.forceUpdate = True
 
     cwd = str()
     configFolder = str()
     logFolder = str()
     flagsFolder = str()
     running = True
-
+    forceUpdate = False
+    flagsCallbacks = {}
 
 class Logger:
     def __init__(self, name, filename):
@@ -126,26 +143,6 @@ class Logger:
         logging.critical(msg)
 
     level: int
-
-
-class InternalConfig:
-    def __init__(self):
-        self.ReadConfig()
-
-    def SetUpdateRate(self, cfg: ConfigPair):
-        dayInSecs = 60*60*24  # Max update rate is 1 day(s)
-        if int(cfg.value) > 0 and int(cfg.value) <= dayInSecs:
-            self.updateRate = int(cfg.value)
-
-    def ReadConfig(self):
-        logger.Inf("Internals Configurations")
-        IniFileParser.ReadFile("Internals.ini",
-                               self.SetUpdateRate)
-
-    def Update(self):
-        self.ReadConfig()
-
-    updateRate = 300
 
 
 class FolderConfig:
@@ -318,24 +315,26 @@ class FolderManager:
 
 
 def Run():
-    logger.Dbg("Entering loop")
+    FlagUpdateLoop()
 
-    iteration = np.uint64(0)
+def FlagUpdateLoop():
+    logger.Dbg("Entering flag check loop")
     while runData.running:
         runData.UpdateFlags()
-        logger.Dbg("Run: {}".format(iteration))
-        iteration = iteration + 1
+        
+        if not runData.forceUpdate:
+            time.sleep(1)
+            continue
+
+        dirEventHandler.handled = True        
 
         FolderManager.SantizeSubFolders()
         FolderManager.SanitizeDestDir()
 
-        internalCfg.Update()
         redirCfg.Update()
         dirEventHandler.Organize()
 
-        updateTime = internalCfg.updateRate
-        logger.Inf("Thread sleep time: {}".format(updateTime))
-        time.sleep(internalCfg.updateRate)
+        runData.forceUpdate = False
     logger.Dbg("Loop terminated")
 
 
@@ -344,7 +343,6 @@ runData = RuntimeData()
 
 logger = Logger("App", "Logs.txt")
 dirEventHandler = DirectoryEventHandler()
-internalCfg = InternalConfig()
 folderCfg = FolderConfig()
 redirCfg = RedirectConfig()
 
@@ -359,10 +357,10 @@ def main():
         Run()
     except Exception as e:
         print(e)
-        observer.stop()
 
-    print("Observer joining")
+    print("Observer stopping")
     observer.stop()
+    print("Observer joining")
     observer.join()
 
 
