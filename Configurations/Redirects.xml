@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Folders>
-    <Folder name="Pictures">
+    <Folder name="Images">
         <Extensions>
             <Extension>png</Extension>
             <Extension>jpg</Extension>
@@ -18,6 +18,11 @@
             <Extension>docx</Extension>
             <Extension>doc</Extension>
             <Extension>pdf</Extension>
+        </Extensions>
+    </Folder>
+    <Folder name="Zips">
+        <Extensions>
+            <Extension>zip</Extension>
         </Extensions>
     </Folder>
 </Folders>

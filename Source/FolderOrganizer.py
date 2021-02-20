@@ -76,7 +76,8 @@ class RuntimeData:
         for file in os.listdir(self.flagsFolder):
             if file.upper() == "TERMINATE":
                 self.running = False
-                os.remove(file)
+                path = os.path.join(self.flagsFolder, file)
+                os.remove(path)
                 logger.Inf("Terminate flag found")
 
     def InitializeLogging(self, filename):
@@ -139,7 +140,7 @@ class InternalConfig:
     def ReadConfig(self):
         logger.Inf("Internals Configurations")
         IniFileParser.ReadFile("Internals.ini",
-                                  self.SetUpdateRate)
+                               self.SetUpdateRate)
 
     def Update(self):
         self.ReadConfig()
@@ -162,7 +163,7 @@ class FolderConfig:
         self.source = str()
         self.destination = str()
         IniFileParser.ReadFile("Paths.ini",
-                                  self.AssignPathCallback)
+                               self.AssignPathCallback)
 
     def SetSource(self, path):
         self.source = path
@@ -323,7 +324,7 @@ def Run():
     while runData.running:
         runData.UpdateFlags()
         logger.Dbg("Run: {}".format(iteration))
-        iteration = ++iteration
+        iteration = iteration + 1
 
         FolderManager.SantizeSubFolders()
         FolderManager.SanitizeDestDir()
@@ -334,7 +335,7 @@ def Run():
 
         updateTime = internalCfg.updateRate
         logger.Inf("Thread sleep time: {}".format(updateTime))
-        time.sleep(updateTime)
+        time.sleep(2)
     logger.Dbg("Loop terminated")
 
 
@@ -361,6 +362,7 @@ def main():
         observer.stop()
 
     print("Observer joining")
+    observer.stop()
     observer.join()
 
 
