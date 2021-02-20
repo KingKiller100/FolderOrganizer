@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FolderOrganizer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="1000" MinWidth="400">
+        Title="MainWindow" Height="450" Width="1000" MinWidth="800">
     <Grid>
         <StackPanel>
             <StackPanel.Background>
@@ -17,7 +17,7 @@
 
             <StackPanel Margin="5 0 5 0" Orientation="Vertical">
 
-                <Grid Margin="5 0 5 0">
+                <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="*"/>
@@ -26,11 +26,14 @@
 
                     <TextBlock Text="Source Directory" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
                     <TextBox x:Name="txtSrcDir" Height="35" Background="#FFFFFFFF" FontSize="18" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="5, 10, 5, 10" Grid.Column="1">
-                        <TextBox.Text>Enter the directory you want to track</TextBox.Text>
+                        <TextBox.Text>Enter source directory</TextBox.Text>
                     </TextBox>
-                    <Button x:Name="btnSearchSrcDir" Grid.Column="2" Height="35"  />
+                    <Button x:Name="btnSearchSrcDir" Grid.Column="2" Height="35">
+                        <TextBlock FontSize="18">Search</TextBlock>
+                    </Button>
                 </Grid>
-                <Grid Margin="5 0 5 0">
+
+                <Grid >
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="*"/>
@@ -39,26 +42,38 @@
 
                     <TextBlock Text="Destination Directory" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
                     <TextBox x:Name="txtDestDir" Height="35" FontSize="18" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="5, 10, 5, 10" Grid.Column="1" Background="#FFEEEEEE">
-                        <TextBox.Text>Enter the directory you want to track</TextBox.Text>
+                        <TextBox.Text>Enter output directory</TextBox.Text>
                     </TextBox>
-                    <Button x:Name="btnSearchDestDir" Grid.Column="2" Height="35"  />
+
+                    <Button x:Name="btnSearchDestDir" Grid.Column="2" Height="35">
+                        <TextBlock FontSize="18">Search</TextBlock>
+                    </Button>
                 </Grid>
 
                 <Grid Height="30"/>
 
-                <Grid Margin="5 0 5 0">
+                <Grid HorizontalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="350"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="120"/>
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Text="Sub Folders" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
-                    <ComboBox x:Name="cbxSubFolders" IsEditable="True" Grid.Column="1" Margin="5 0 5 0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-                    <Button x:Name="btnAddSubFolder" Grid.Column="2" Margin="5 0 5 0"/>
-                    <Button x:Name="btnDeleteSubFolder" Grid.Column="3" Margin="0 0 10 0"/>
+                    <ComboBox x:Name="cbxSubFolders" IsEditable="True" Grid.Column="1" Margin="5 0 5 0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+                              Text="Add/view sub folders"  />
+
+                    <Button x:Name="btnAddSubFolder" Grid.Column="2" Margin="5 0 5 0">
+                        <TextBlock FontSize="18">Add</TextBlock>
+                    </Button>
+
+                    <Button x:Name="btnDeleteSubFolder" Grid.Column="3" Margin="0 0 10 0">
+                        <TextBlock FontSize="18">Delete</TextBlock>
+                    </Button>
                 </Grid>
+
+                <Grid Height="30"/>
             </StackPanel>
         </StackPanel>
     </Grid>
