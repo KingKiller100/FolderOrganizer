@@ -335,7 +335,7 @@ def Run():
 
         updateTime = internalCfg.updateRate
         logger.Inf("Thread sleep time: {}".format(updateTime))
-        time.sleep(2)
+        time.sleep(internalCfg.updateRate)
     logger.Dbg("Loop terminated")
 
 
