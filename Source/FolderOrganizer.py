@@ -1,7 +1,6 @@
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-import threading
 import shutil
 import logging
 import os
@@ -76,36 +75,35 @@ class RuntimeData:
             logger.Crt(msg)
             raise FileExistsError(msg)
 
-        for file in os.listdir(self.flagsFolder):
-            for (flag, cb) in self.flagsCallbacks:
-                if file.upper() == flag:
-                    path = os.path.join(self.flagsFolder, file)
-                    os.remove(path)
-                    logger.Inf("{} flag found".format(flag))
+        for flag in os.listdir(self.flagsFolder):
+            if flag in self.flagsCallbacks:
+                logger.Inf("{} flag found".format(flag))
+                self.flagsCallbacks[flag.upper()]()
+                path = os.path.join(self.flagsFolder, flag)
+                os.remove(path)
 
     def InitializeLogging(self, filename):
         path = os.path.join(self.logFolder, filename)
         logging.basicConfig(level=logging.INFO, filename=path)
 
     def InitializeFlagCallBacks(self):
-        self.AddFlagCB("TERMINATE", self.TerminateApp)
-        self.AddFlagCB("FORCE_UPDATE", self.ForceUpdate)
-
-    def AddFlagCB(self, flag : str, cb):
-        self.flagsCallbacks[flag] = cb
+        self.flagsCallbacks = {
+            "TERMINATE": self.TerminateApp,
+            "FORCE_ORGANIZE": self.ForceOrganize
+        }
 
     def TerminateApp(self):
         self.running = False
 
-    def ForceUpdate(self):
-        self.forceUpdate = True
+    def ForceOrganize(self):
+        self.forceOrganize = True
 
     cwd = str()
     configFolder = str()
     logFolder = str()
     flagsFolder = str()
     running = True
-    forceUpdate = False
+    forceOrganize = False
     flagsCallbacks = {}
 
 class Logger:
