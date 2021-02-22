@@ -6,7 +6,7 @@ import logging
 import os
 import time
 import numpy as np
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as et
 
 import ConfigFile
 import RuntimeData
@@ -51,7 +51,7 @@ class RedirectConfig:
         Logger.Inf("File redirect Configurations")
         try:
             path = os.path.join(runData.configFolder, self.settingsFile)
-            elemTree = ET.parse(path)
+            elemTree = et.parse(path)
             self.redirects = {}
             root = elemTree.getroot()
             for folderItem in root.findall("Folder"):
@@ -182,15 +182,6 @@ class FolderManager:
             os.makedirs(path)
             Logger.Dbg("Created directory: '{}'".format(path))
 
-def UpdateSettings():
-    dirEventHandler.handled = True        
-
-    FolderManager.SantizeSubFolders()
-    FolderManager.SanitizeDestDir()
-
-    redirCfg.Update()
-    dirEventHandler.Organize()
-
 
 def Run():
     startTime = time.time()
@@ -206,9 +197,18 @@ def FlagUpdateLoop():
 
     while runData.runningFlag:
         runData.UpdateFlags()
-        time.sleep(5)            
+        time.sleep(2.5)            
     
     Logger.Bnr("Flag loop terminated")
+
+def UpdateSettings():
+    dirEventHandler.handled = True        
+
+    FolderManager.SantizeSubFolders()
+    FolderManager.SanitizeDestDir()
+
+    redirCfg.Update()
+    dirEventHandler.Organize()
 
 
 # Main
@@ -229,10 +229,10 @@ def main():
     try:
         Run()
     except Exception as e:
+        Logger.Inf("Observer stopping")
+        observer.stop()
         Logger.Ftl("[Exception] {}".format(e))
 
-    Logger.Inf("Observer stopping")
-    observer.stop()
     Logger.Inf("Observer joining")
     observer.join()
 
