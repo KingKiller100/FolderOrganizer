@@ -8,166 +8,36 @@ import time
 import numpy as np
 import xml.etree.ElementTree as ET
 
+import ConfigFile
+import RuntimeData
+import Logger
+
 # Impl
-
-
-class ConfigPair:
-    def __init__(self, k: str, v):
-        self.key = k.lower()
-        self.value = v
-
-    key: str
-    value: str
-
-
-class IniFileParser:
-    @staticmethod
-    def ReadFile(filename, cb):
-        gh = runData.configFolder
-        path = os.path.join(runData.configFolder, filename)
-        print("Reading configurations: '{}'".format(path))
-        file = open(path, "r")
-        lines = file.readlines()
-        for line in lines:
-            line = line.split("*", 1)[0]
-            line = line.strip()
-            if line == "":
-                continue
-
-            split = line.split(":", 1)
-
-            key = split[0]
-            key = key.replace(" ", "")
-            key = key.lower()
-
-            value = split[1]
-            value = value.replace(" ", "")
-            value = value.strip()
-            config = ConfigPair(key, value)
-            print("  - [{}, {}]".format(key, value))
-            cb(config)
-        file.close()
-
-
-class RuntimeData:
-    def __init__(self):
-        realpath = os.path.realpath(__file__)
-        self.cwd = os.path.dirname(realpath)
-        print("Current working directory: '{}'".format(self.cwd))
-
-        self.configFolder = self.AssignFolderPath("../Configurations")
-        self.flagsFolder = self.AssignFolderPath("../Flags")
-        self.logFolder = self.AssignFolderPath("../Logs")
-
-        self.InitializeFlagCallBacks()
-
-    def AssignFolderPath(self, folderStr):
-        path = os.path.realpath(
-            os.path.join(self.cwd, folderStr))
-        print("Registered path: '{}'".format(path))
-        if not os.path.exists(path):
-            os.makedirs(path)
-        return path
-
-    def UpdateFlags(self):
-        if not os.path.exists(self.flagsFolder):
-            msg = "No flags folder found"
-            logger.Crt(msg)
-            raise FileExistsError(msg)
-
-        for flag in os.listdir(self.flagsFolder):
-            flag = flag.upper()
-            if flag in self.flagsCallbacks:
-                logger.Inf("{} flag found".format(flag))
-                self.flagsCallbacks[flag]()
-                path = os.path.join(self.flagsFolder, flag)
-                os.remove(path)
-
-    def InitializeLogging(self, filename):
-        path = os.path.join(self.logFolder, filename)
-        logging.basicConfig(level=logging.INFO, filename=path)
-
-    def InitializeFlagCallBacks(self):
-        self.flagsCallbacks = {
-            "TERMINATE": self.TerminateApp,
-            "FORCE_ORGANIZE": self.ForceOrganize
-        }
-
-    def TerminateApp(self):
-        self.running = False
-
-    def ForceOrganize(self):
-        self.forceOrganize = True
-
-    cwd = str()
-    configFolder = str()
-    logFolder = str()
-    flagsFolder = str()
-    running = True
-    forceOrganize = False
-    flagsCallbacks = {}
-
-class Logger:
-    def __init__(self, name, filename):
-        self.ReadConfig()
-        msgFormat = "[%(asctime)s] - [%(levelname)s]: %(message)s"
-        path = os.path.join(runData.logFolder, filename)
-        logging.basicConfig(filename=path, level=self.level, format=msgFormat)
-
-    def ReadConfigCallBack(self, cfg: ConfigPair):
-        if cfg.key == "level":
-            self.level = int(cfg.value)
-
-    def ReadConfig(self):
-        IniFileParser.ReadFile("Logging.ini", self.ReadConfigCallBack)
-
-    def Dbg(self, msg):
-        print(msg)
-        logging.debug(msg)
-
-    def Inf(self, msg):
-        print(msg)
-        logging.info(msg)
-
-    def Wrn(self, msg):
-        print(msg)
-        logging.warning(msg)
-
-    def Err(self, msg):
-        print(msg)
-        logging.error(msg)
-
-    def Crt(self, msg):
-        print(msg)
-        logging.critical(msg)
-
-    level: int
-
-
 class FolderConfig:
     def __init__(self):
         self.ReadConfig()
 
-    def AssignPathCallback(self, config: ConfigPair):
+    def ReadConfig(self):
+        Logger.Inf("Folder Configurations")
+        self.source = str()
+        self.destination = str()
+        path = os.path.join(runData.configFolder, "Paths.ini")
+        ConfigFile.IniFileParser.ReadFile(path,
+                               self.AssignPathCallback)
+
+    def AssignPathCallback(self, config: ConfigFile.ConfigPair):
         if not config.key.lower().find("source") == -1:
             self.SetSource(config.value)
         else:
             self.SetDestination(config.value)
 
-    def ReadConfig(self):
-        logger.Inf("Folder Configurations")
-        self.source = str()
-        self.destination = str()
-        IniFileParser.ReadFile("Paths.ini",
-                               self.AssignPathCallback)
-
     def SetSource(self, path):
         self.source = path
-        print("Tracking source path: " + self.source)
+        Logger.Inf("Tracking source path: " + self.source)
 
     def SetDestination(self, path):
         self.destination = path
-        print("Destination path: " + self.destination)
+        Logger.Inf("Destination path: " + self.destination)
 
     source = str()
     destination = str()
@@ -178,28 +48,29 @@ class RedirectConfig:
         self.ReadConfig()
 
     def ReadConfig(self):
-        logger.Inf("File redirect Configurations")
+        Logger.Inf("File redirect Configurations")
         try:
-            elemTree = ET.parse(runData.configFolder + self.settingsFile)
+            path = os.path.join(runData.configFolder, self.settingsFile)
+            elemTree = ET.parse(path)
             self.redirects = {}
             root = elemTree.getroot()
             for folderItem in root.findall("Folder"):
                 extList = []
                 folder = folderItem.attrib["name"]
-                logger.Inf("Folder: " + folder)
+                Logger.Inf("Folder: " + folder)
                 for extsItem in folderItem.findall("Extensions"):
                     for extItem in extsItem.findall("Extension"):
                         ext = extItem.text
                         extList.append(ext)
-                        logger.Inf("  - Extension: " + ext)
+                        Logger.Inf("  - Extension: " + ext)
                 self.redirects[folder] = extList
         except:
-            logger.Err("Problem reading file: " + self.settingsFile)
+            Logger.Err("Problem reading file: " + self.settingsFile)
 
     def Update(self):
         self.ReadConfig()
 
-    settingsFile = "/Redirects.xml"
+    settingsFile = "Redirects.xml"
     redirects = {}
 
 
@@ -208,7 +79,7 @@ class DirectoryEventHandler(FileSystemEventHandler):
         try:
             if not os.path.exists(dest):
                 shutil.move(src, dest)
-                logger.Inf("  - New path file: '{}'".format(dest))
+                Logger.Inf("  - New path file: '{}'".format(dest))
             else:
                 split = dest.split('.')
                 pathNoExt = split[0]
@@ -221,7 +92,7 @@ class DirectoryEventHandler(FileSystemEventHandler):
                 dest = "{}{}{}".format(pathNoExt, copyNum, ext)
                 self.MoveFile(src, dest, copyNum + 1)
         except:
-            logger.Err("[Error] unable to move file: '{}'\n".format(src))
+            Logger.Err("[Error] unable to move file: '{}'\n".format(src))
 
     def Organize(self):
         if self.handled == True:
@@ -239,10 +110,9 @@ class DirectoryEventHandler(FileSystemEventHandler):
                 found = False
                 for ext in exts:
                     if (filename.lower().endswith(ext)):
-                        destDirectory = os.path.join(
-                            folderCfg.destination, path)
-                        logger.Inf("Extension match: '{}'".format(ext))
-                        logger.Inf("  - Path: '{}'".format(srcFilepath))
+                        destDirectory = os.path.join(folderCfg.destination, path)
+                        Logger.Inf("Extension match: '{}'".format(ext))
+                        Logger.Inf("  - Path: '{}'".format(srcFilepath))
 
                         destPath = os.path.join(destDirectory, filename)
                         self.MoveFile(srcFilepath, destPath, 1)
@@ -310,37 +180,41 @@ class FolderManager:
                 continue
 
             os.makedirs(path)
-            print("Created directory: '{}'".format(path))
+            Logger.Dbg("Created directory: '{}'".format(path))
+
+def UpdateSettings():
+    dirEventHandler.handled = True        
+
+    FolderManager.SantizeSubFolders()
+    FolderManager.SanitizeDestDir()
+
+    redirCfg.Update()
+    dirEventHandler.Organize()
 
 
 def Run():
+    startTime = time.time()
+    
+    runData._flagResolver.AddFlag("RELOAD", UpdateSettings)
     FlagUpdateLoop()
+    
+    elapsedTime = time.time() - startTime
+    Logger.Inf("Total run time: {} secs".format(elapsedTime))
 
 def FlagUpdateLoop():
-    logger.Dbg("Entering flag check loop")
-    while runData.running:
+    Logger.Bnr("Flag loop")
+
+    while runData.runningFlag:
         runData.UpdateFlags()
-        
-        if not runData.forceOrganize:
-            time.sleep(1)
-            continue
-
-        dirEventHandler.handled = True        
-
-        FolderManager.SantizeSubFolders()
-        FolderManager.SanitizeDestDir()
-
-        redirCfg.Update()
-        dirEventHandler.Organize()
-
-        runData.forceOrganize = False
-    logger.Dbg("Loop terminated")
+        time.sleep(5)            
+    
+    Logger.Bnr("Flag loop terminated")
 
 
 # Main
-runData = RuntimeData()
+runData = RuntimeData.RuntimeData()
 
-logger = Logger("App", "Logs.txt")
+Logger.InitializeLogger(logging.INFO, os.path.join(runData.logFolder, "Logs.txt"))
 dirEventHandler = DirectoryEventHandler()
 folderCfg = FolderConfig()
 redirCfg = RedirectConfig()
@@ -355,11 +229,11 @@ def main():
     try:
         Run()
     except Exception as e:
-        print("[Exception] {}".format(e))
+        Logger.Ftl("[Exception] {}".format(e))
 
-    print("Observer stopping")
+    Logger.Inf("Observer stopping")
     observer.stop()
-    print("Observer joining")
+    Logger.Inf("Observer joining")
     observer.join()
 
 
