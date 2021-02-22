@@ -7,3 +7,5 @@
 [Ll]ogs/
 [Ff]lags/
 .idea/
+
+__pycache__/
