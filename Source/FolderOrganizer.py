@@ -76,9 +76,10 @@ class RuntimeData:
             raise FileExistsError(msg)
 
         for flag in os.listdir(self.flagsFolder):
+            flag = flag.upper()
             if flag in self.flagsCallbacks:
                 logger.Inf("{} flag found".format(flag))
-                self.flagsCallbacks[flag.upper()]()
+                self.flagsCallbacks[flag]()
                 path = os.path.join(self.flagsFolder, flag)
                 os.remove(path)
 
@@ -320,7 +321,7 @@ def FlagUpdateLoop():
     while runData.running:
         runData.UpdateFlags()
         
-        if not runData.forceUpdate:
+        if not runData.forceOrganize:
             time.sleep(1)
             continue
 
@@ -332,7 +333,7 @@ def FlagUpdateLoop():
         redirCfg.Update()
         dirEventHandler.Organize()
 
-        runData.forceUpdate = False
+        runData.forceOrganize = False
     logger.Dbg("Loop terminated")
 
 
@@ -354,7 +355,7 @@ def main():
     try:
         Run()
     except Exception as e:
-        print(e)
+        print("[Exception] {}".format(e))
 
     print("Observer stopping")
     observer.stop()
