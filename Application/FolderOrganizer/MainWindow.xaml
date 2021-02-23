@@ -15,7 +15,7 @@
                 </LinearGradientBrush>
             </StackPanel.Background>
 
-            <StackPanel Margin="5 0 5 0" Orientation="Vertical">
+            <StackPanel Margin="15 20 15 10" Orientation="Vertical">
 
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -24,14 +24,23 @@
                         <ColumnDefinition Width="120"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Source Directory" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
-                    <TextBox x:Name="txtSrcDir" Height="35" Background="#FFFFFFFF" FontSize="18" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="5, 10, 5, 10" Grid.Column="1">
+                    <TextBlock Text="Source Directory" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="20"/>
+                    <TextBox x:Name="txtSrcDir" Height="35" 
+                             Background="#FFFFFFFF" 
+                             FontSize="18" 
+                             VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+                             Margin="5, 10, 5, 10" 
+                             Grid.Column="1"
+                             IsReadOnly="True"
+                             >
                         <TextBox.Text>Enter source directory</TextBox.Text>
                     </TextBox>
                     <Button x:Name="btnSearchSrcDir" Grid.Column="2" Height="35">
                         <TextBlock FontSize="18">Search</TextBlock>
                     </Button>
                 </Grid>
+
+                <Grid Height="10"/>
 
                 <Grid >
                     <Grid.ColumnDefinitions>
@@ -40,8 +49,16 @@
                         <ColumnDefinition Width="120"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Destination Directory" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
-                    <TextBox x:Name="txtDestDir" Height="35" FontSize="18" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="5, 10, 5, 10" Grid.Column="1" Background="#FFEEEEEE">
+                    <TextBlock Text="Destination Directory" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="20"/>
+                    <TextBox x:Name="txtDestDir" 
+                             Background="#FFEEEEEE"
+                             Height="35" 
+                             FontSize="18" 
+                             VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
+                             Margin="5, 10, 5, 10" 
+                             Grid.Column="1"
+                             IsReadOnly="True"
+                             >
                         <TextBox.Text>Enter output directory</TextBox.Text>
                     </TextBox>
 
@@ -52,7 +69,7 @@
 
                 <Grid Height="30"/>
 
-                <Grid HorizontalAlignment="Center">
+                <Grid HorizontalAlignment="Center" Height="35">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="350"/>
@@ -61,19 +78,58 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Text="Sub Folders" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
-                    <ComboBox x:Name="cbxSubFolders" IsEditable="True" Grid.Column="1" Margin="5 0 5 0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                              Text="Add/view sub folders"  />
+                    <ComboBox x:Name="cbxSubFolders" IsEditable="True" FontSize="18" Grid.Column="1" Margin="5 0 5 0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+                              Text="Modify sub folders list" />
 
                     <Button x:Name="btnAddSubFolder" Grid.Column="2" Margin="5 0 5 0">
                         <TextBlock FontSize="18">Add</TextBlock>
                     </Button>
 
-                    <Button x:Name="btnDeleteSubFolder" Grid.Column="3" Margin="0 0 10 0">
+                    <Button x:Name="btnDeleteSubFolder" Grid.Column="3" Margin="0 0 10 0" >
                         <TextBlock FontSize="18">Delete</TextBlock>
                     </Button>
                 </Grid>
 
                 <Grid Height="30"/>
+
+                <Grid HorizontalAlignment="Center" Height="35">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="350"/>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="120"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Extensions" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
+                    <ComboBox x:Name="cbxExtensions" IsEditable="True" FontSize="18" Grid.Column="1" Margin="5 0 5 0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
+                              Text="Modify extensions list"  />
+
+                    <Button x:Name="btnAddExtension" Grid.Column="2" Margin="5 0 5 0">
+                        <TextBlock FontSize="18">Add</TextBlock>
+                    </Button>
+
+                    <Button x:Name="btnDeleteExtension" Grid.Column="3" Margin="0 0 10 0">
+                        <TextBlock FontSize="18">Delete</TextBlock>
+                    </Button>
+                </Grid>
+
+                <Grid Height="80"/>
+
+                <Grid HorizontalAlignment="Center" Height="35" Width="900" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="150"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button x:Name="btnLaunchScript" Grid.Column="0" Margin="0 0 10 0">
+                        <TextBlock FontSize="18">Launch</TextBlock>
+                    </Button>
+
+                    <Button x:Name="btnUpdateScript" Grid.Column="2" Margin="0 0 10 0">
+                        <TextBlock FontSize="18">Update</TextBlock>
+                    </Button>
+                </Grid>
             </StackPanel>
         </StackPanel>
     </Grid>
