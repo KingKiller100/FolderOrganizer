@@ -25,17 +25,16 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Text="Source Directory" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="20"/>
-                    <TextBox x:Name="txtSrcDir" Height="35" 
+                    <TextBox x:Name="tbxSrcDir" Height="35" 
                              Background="#FFFFFFFF" 
                              FontSize="18" 
                              VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
                              Margin="5, 10, 5, 10" 
                              Grid.Column="1"
-                             IsReadOnly="True"
+                             IsReadOnly="True" LostFocus="tbxSrcDir_LostFocus"
                              >
-                        <TextBox.Text>Enter source directory</TextBox.Text>
                     </TextBox>
-                    <Button x:Name="btnSearchSrcDir" Grid.Column="2" Height="35">
+                    <Button x:Name="btnSearchSrcDir" Grid.Column="2" Height="35" Click="btnSearchSrcDir_Click">
                         <TextBlock FontSize="18">Search</TextBlock>
                     </Button>
                 </Grid>
@@ -50,7 +49,7 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Text="Destination Directory" VerticalAlignment="Center" HorizontalAlignment="Left" FontSize="20"/>
-                    <TextBox x:Name="txtDestDir" 
+                    <TextBox x:Name="tbxDestDir" 
                              Background="#FFEEEEEE"
                              Height="35" 
                              FontSize="18" 
