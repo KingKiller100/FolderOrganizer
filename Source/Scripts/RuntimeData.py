@@ -12,6 +12,11 @@ class FlagResolver(object):
             raise FileExistsError(msg)
 
         for flag in os.listdir(self._flagsFolder):
+            path = os.path.join(self._flagsFolder, flag)
+            
+            if os.path.isdir(path):
+                continue
+
             flag = flag.upper()
             if flag in self._flagsCallbacks:
                 Logger.Inf("{} flag found".format(flag))
@@ -31,9 +36,9 @@ class RuntimeData:
         self.cwd = os.path.dirname(realpath)
         Logger.Inf("Current working directory: '{}'".format(self.cwd))
 
-        self.configFolder = self.AssignFolderPath("../Configurations")
-        self.flagsFolder = self.AssignFolderPath("../Flags")
-        self.logFolder = self.AssignFolderPath("../Logs")
+        self.configFolder = self.AssignFolderPath("../../Configurations")
+        self.flagsFolder = self.AssignFolderPath("../../Flags")
+        self.logFolder = self.AssignFolderPath("../../Logs")
 
         self.InitializeFlags()
 
