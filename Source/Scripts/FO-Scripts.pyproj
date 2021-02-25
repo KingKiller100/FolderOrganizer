@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{0a4b90ef-4383-4482-b940-f05b07d491c2}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>FolderOrganizer.py</StartupFile>
+    <StartupFile>FindExecutable.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -22,6 +22,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ConfigFile.py" />
+    <Compile Include="FindExecutable.py" />
     <Compile Include="FolderOrganizer.py" />
     <Compile Include="Logger.py" />
     <Compile Include="RuntimeData.py" />

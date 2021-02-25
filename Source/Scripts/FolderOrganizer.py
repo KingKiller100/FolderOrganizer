@@ -28,9 +28,9 @@ class FolderConfig:
                                self.AssignPathCallback)
 
     def AssignPathCallback(self, config: ConfigFile.ConfigPair):
-        if not config.key.lower().find("source") == -1:
+        if config.key.lower().find("source") != -1:
             self.SetSource(config.value)
-        else:
+        elif config.key.lower().find("destination") != -1:
             self.SetDestination(config.value)
 
     def SetSource(self, path):

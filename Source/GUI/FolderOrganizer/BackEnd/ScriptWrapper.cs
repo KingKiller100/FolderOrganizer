@@ -11,6 +11,20 @@ using FolderOrganizer.UILib;
 
 namespace FolderOrganizer.BackEnd
 {
+    internal struct RuntimeKeys
+    {
+        internal struct RuntimeInfo
+        {
+            public const string ProcessID = "pid";
+        }
+
+        internal struct Paths
+        {
+            public const string SourcePath = "Source";
+            public const string DestinationPath = "Destination";
+        }
+    }
+
     class ScriptWrapper
     {
         private static ScriptWrapper _instance = null;
@@ -24,20 +38,21 @@ namespace FolderOrganizer.BackEnd
         }
 
         private Process _process;
-        private readonly Dictionary<string, string> _runtimeInfo = new Dictionary<string, string>();
+        public readonly Dictionary<string, string> _runtimeInfo = new Dictionary<string, string>();
 
-        private const string RuntimeFilename = "RuntimeInfo.ini";
-        private const string ScriptFilename = "FolderOrganizer.py";
-
-        private readonly string _runtimeInfoFilepath;
+        private readonly string _pathsFilePath;
+        private readonly string _scriptFilePath;
+        private readonly string _runtimeInfoFilePath;
 
         ScriptWrapper()
         {
-            _runtimeInfoFilepath = Path.Combine(AppFolders.ConfigsDir, RuntimeFilename);
+            _pathsFilePath = Path.Combine(AppFolders.ConfigsDir, "Paths.ini");
+            _scriptFilePath = Path.Combine(AppFolders.ScriptsDir, "FolderOrganizer.py");
+            _runtimeInfoFilePath = Path.Combine(AppFolders.ConfigsDir, "RuntimeInfo.ini");
+
             LoadFromDisk();
 
-            Logger.Inf($"Script filename: {ScriptFilename}");
-            Logger.Inf($"Runtime info path: {RuntimeFilename}");
+            Logger.Inf($"Script filename: {_scriptFilePath}");
         }
 
         public void Launch()
@@ -55,6 +70,15 @@ namespace FolderOrganizer.BackEnd
         {
             RaiseFlag(RuntimeFlags.Terminate);
         }
+        void RaiseFlag(RuntimeFlags flag)
+        {
+
+            var flagFilePath = Path.Combine(AppFolders.FlagsDir, flag.ToString());
+            using (var file = File.Create(flagFilePath))
+            {
+                Logger.Inf($"Raising flag: {flag}");
+            }
+        }
 
         public bool IsRunning()
         {
@@ -65,72 +89,104 @@ namespace FolderOrganizer.BackEnd
         {
             Logger.Bnr("Launching script", "*", 5);
 
-            var scriptFilePath = Path.Combine(AppFolders.ScriptsDir, ScriptFilename);
+            var scriptFilePath = Path.Combine(AppFolders.ScriptsDir, _scriptFilePath);
 
             Logger.Inf($"Launching script: {scriptFilePath}");
 
-            if (!Directory.Exists(scriptFilePath))
+            if (!File.Exists(scriptFilePath))
                 Logger.Ftl("Script doesn't exist!");
 
-            var startInfo = new ProcessStartInfo
+            // var scriptEngine = IronPython.Hosting.Python.CreateEngine();
+            // scriptEngine.ExecuteFile(_scriptFilePath);
+            
+            _process = new Process
             {
-                FileName = scriptFilePath,
-                UseShellExecute = true
+                StartInfo =
+                {
+                    FileName = "C:\\Users\\44753\\AppData\\Local\\Programs\\Python\\Python39\\python.exe",
+                    Arguments = $"{_scriptFilePath} ",
+                    UseShellExecute = false,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                }
             };
-            _process = new Process { StartInfo = startInfo };
             _process.Start();
 
             var pid = _process.Id;
-            _runtimeInfo["ProcessId"] = pid.ToString();
+            _runtimeInfo[RuntimeKeys.RuntimeInfo.ProcessID] = pid.ToString();
             Logger.Bnr("Script launched", "*", 5);
         }
 
         void StoreToDisk()
         {
             Logger.Bnr("Storing to disk", "*", 5);
-            IniFile.DeleteFile(_runtimeInfoFilepath);
-            IniFile.WriteFile(_runtimeInfoFilepath, _runtimeInfo);
+            IniFile.DeleteFile(_runtimeInfoFilePath);
+            IniFile.WriteFile(_runtimeInfoFilePath, _runtimeInfo);
             Logger.Bnr("Store concluded", "*", 5);
         }
 
-        bool LoadFromDisk()
+        void LoadFromDisk()
         {
             Logger.Bnr("Loading from disk", "*", 5);
 
-            var success = false;
-            var exist = Directory.Exists(_runtimeInfoFilepath);
-            if (IniFile.ReadFile(_runtimeInfoFilepath, _runtimeInfo))
-            {
-                if (_runtimeInfo.TryGetValue("ProcessId", out var pidStr))
-                {
-                    var pid = int.Parse(pidStr);
-                    Logger.Inf($"Process ID loaded: {pid}");
+            LoadPaths();
+            LoadRuntimeInfo();
 
-                    _process = Process.GetProcessById(pid);
-                    if (!_process.HasExited)
-                    {
-                        Logger.Inf($"Process found");
-                        success = true;
-                    }
-
-                    Logger.Wrn($"Process not found on system!");
-
-                    _process = null;
-                }
-            }
             Logger.Bnr("Load concluded", "*", 5);
-
-            return success;
         }
 
-        void RaiseFlag(RuntimeFlags flag)
+        void LoadRuntimeInfo()
         {
+            var exist = Directory.Exists(_runtimeInfoFilePath);
 
-            var flagFilePath = Path.Combine(AppFolders.FlagsDir, flag.ToString());
-            using (var file = File.Create(flagFilePath))
+            if (!IniFile.ReadFile(_runtimeInfoFilePath, _runtimeInfo))
+                return;
+
+            if (!_runtimeInfo.TryGetValue(RuntimeKeys.RuntimeInfo.ProcessID, out var pidStr))
+                return;
+
+            var pid = int.Parse(pidStr);
+            Logger.Inf($"Process ID loaded: {pid}");
+
+            try
             {
-                Logger.Inf($"Raising flag: {flag}");
+                _process = Process.GetProcessById(pid);
+
+                if (!_process.HasExited)
+                {
+                    Logger.Inf($"Process found");
+                }
             }
+            catch
+            {
+                Logger.Wrn($"Process not found on system!");
+            }
+        }
+
+        void LoadPaths()
+        {
+            if (!IniFile.ReadFile(_pathsFilePath, _runtimeInfo))
+                return;
+
+            if (_runtimeInfo.TryGetValue(RuntimeKeys.Paths.SourcePath, out var sourcePath))
+            {
+                Logger.Inf($"Source path found: \"{sourcePath}\"");
+            }
+            else
+            {
+                Logger.Wrn("Source path not found");
+            }
+
+            if (_runtimeInfo.TryGetValue(RuntimeKeys.Paths.DestinationPath, out var destPath))
+            {
+                Logger.Inf($"Destination path found: \"{destPath}\"");
+            }
+            else
+            {
+                Logger.Wrn("Destination path not found");
+            }
+
         }
     }
 }

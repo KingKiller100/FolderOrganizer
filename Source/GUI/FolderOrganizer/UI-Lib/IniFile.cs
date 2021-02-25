@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,33 +18,32 @@ namespace FolderOrganizer.UILib
         {
             path = Path.ChangeExtension(path, "ini");
 
-            if (!Directory.Exists(path))
+            if (!File.Exists(path))
             {
                 Logger.Wrn($"Failed to find file: {path}");
                 return false;
             }
 
-            Logger.Bnr($"Reading ini: {path}", "*", 5);
+            Logger.Inf($"Reading ini: {path}");
 
             var lines = new Queue<string>(File.ReadAllLines(path, encoding));
 
             while (lines.Any())
             {
-                var line = lines.Peek();
-                line = line.TrimEnd('*');
+                var line = lines.Dequeue();
+                line = line.Split("*".ToCharArray())[0];
 
                 if (!line.Any()) continue;
 
                 line = line.Replace(" ", "");
-                var details = line.Split(':');
 
-                var key = details[0];
-                var value = details[1];
+                var colonPos = line.IndexOf(':');
+
+                var key = line.Substring(0, colonPos);
+                var value = line.Substring(colonPos + 1);
                 Logger.Inf($"  - [\"{key}\", \"{value}\"]");
-                data.Add(key, value);
+                data[key] = value;
             }
-
-            Logger.Bnr($"Reading ini concluded", "*", 5);
 
             return true;
         }
@@ -65,7 +65,7 @@ namespace FolderOrganizer.UILib
 
                 foreach (var pair in data)
                 {
-                    var line = $"{pair.Key}: {pair.Value}";
+                    var line = $"{pair.Key}: {pair.Value}{Environment.NewLine}";
                     Logger.Inf($"Writing configuration: [{pair.Key}, {pair.Value}]");
                     var lineData = encoding.GetBytes(line);
                     file.Write(lineData, 0, line.Length);
@@ -81,7 +81,7 @@ namespace FolderOrganizer.UILib
         {
             path = Path.ChangeExtension(path, "ini");
 
-            if (!Directory.Exists(path))
+            if (!File.Exists(path))
                 return false;
 
             Logger.Inf($"Deleting ini: {path}");

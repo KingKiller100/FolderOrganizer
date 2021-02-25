@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Windows;
 using FolderOrganizer.BackEnd;
 using FolderOrganizer.Logging;
@@ -27,8 +28,22 @@ namespace FolderOrganizer
             _scriptWrapper = ScriptWrapper.Instance;
 
             SetEnabledButtons();
+            FillSearchTextBoxes();
 
             Logger.Bnr("Application Initialized", "*", 5);
+        }
+
+        private void FillSearchTextBoxes()
+        {
+            if (_scriptWrapper._runtimeInfo.TryGetValue(RuntimeKeys.Paths.SourcePath, out var sourcePath))
+            {
+                _srcBoxWrapper.Text = sourcePath;
+            }
+
+            if (_scriptWrapper._runtimeInfo.TryGetValue(RuntimeKeys.Paths.DestinationPath, out var destPath))
+            {
+                _destBoxWrapper.Text = destPath;
+            }
         }
 
         private void tbxSrcDir_LostFocus(object sender, RoutedEventArgs e)
@@ -43,8 +58,11 @@ namespace FolderOrganizer
 
         private void btnSearchSrcDir_Click(object sender, RoutedEventArgs e)
         {
-            var userFdr = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            DirectoryDialogHelper.OpenFolderDialog(_srcBoxWrapper.Tbx, userFdr);
+
+            var folderPath = _srcBoxWrapper.IsDefault()
+                ? Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+                : _srcBoxWrapper.Text;
+            DirectoryDialogHelper.OpenFolderDialog(_srcBoxWrapper.Tbx, folderPath);
         }
 
         private void btnSearchDestDir_Click(object sender, RoutedEventArgs e)
@@ -79,6 +97,7 @@ namespace FolderOrganizer
                 return;
 
             _scriptWrapper.Terminate();
+            Thread.Sleep(2000);
             SetEnabledButtons();
         }
 

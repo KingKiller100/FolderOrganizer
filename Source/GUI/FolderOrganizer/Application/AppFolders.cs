@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace FolderOrganizer.Application
 {
@@ -14,9 +11,9 @@ namespace FolderOrganizer.Application
         private const string SourceRelativePath = @"..\Source";
         private const string ScriptsRelativePath = SourceRelativePath + @"\Scripts";
 
-        public static string FlagsDir => $@"{Environment.CurrentDirectory}\{FlagsRelativePath}";
-        public static string ConfigsDir => $"{Environment.CurrentDirectory}\\{ConfigsRelativePath}";
-        public static string LogsDir => $"{Environment.CurrentDirectory}\\{LogsRelativePath}";
-        public static string ScriptsDir => $"{Environment.CurrentDirectory}\\{ScriptsRelativePath}";
+        public static string LogsDir => Path.GetFullPath($"{Environment.CurrentDirectory}\\{LogsRelativePath}");
+        public static string FlagsDir => Path.GetFullPath($"{Environment.CurrentDirectory}\\{FlagsRelativePath}");
+        public static string ConfigsDir => Path.GetFullPath($"{Environment.CurrentDirectory}\\{ConfigsRelativePath}");
+        public static string ScriptsDir => Path.GetFullPath($"{Environment.CurrentDirectory}\\{ScriptsRelativePath}");
     }
 }
