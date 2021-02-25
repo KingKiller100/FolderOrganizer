@@ -56,12 +56,11 @@
                              VerticalContentAlignment="Center" HorizontalContentAlignment="Center" 
                              Margin="5, 10, 5, 10" 
                              Grid.Column="1"
-                             IsReadOnly="True"
+                             IsReadOnly="True" LostFocus="tbxDestDir_LostFocus"
                              >
-                        <TextBox.Text>Enter output directory</TextBox.Text>
                     </TextBox>
 
-                    <Button x:Name="btnSearchDestDir" Grid.Column="2" Height="35">
+                    <Button x:Name="btnSearchDestDir" Grid.Column="2" Height="35" Click="btnSearchDestDir_Click">
                         <TextBlock FontSize="18">Search</TextBlock>
                     </Button>
                 </Grid>
@@ -119,13 +118,19 @@
                         <ColumnDefinition Width="150"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="150"/>
                     </Grid.ColumnDefinitions>
 
-                    <Button x:Name="btnLaunchScript" Grid.Column="0" Margin="0 0 10 0">
+                    <Button x:Name="btnLaunchScript" Grid.Column="0" Margin="0 0 10 0" Click="btnLaunchScript_Click">
                         <TextBlock FontSize="18">Launch</TextBlock>
                     </Button>
 
-                    <Button x:Name="btnUpdateScript" Grid.Column="2" Margin="0 0 10 0">
+                    <Button x:Name="btnTerminateScript" Grid.Column="2" Margin="0 0 10 0" Click="btnTerminateScript_Click">
+                        <TextBlock FontSize="18">Terminate</TextBlock>
+                    </Button>
+
+                    <Button x:Name="btnUpdateScript" Grid.Column="4" Margin="0 0 10 0" Click="btnUpdateScript_Click">
                         <TextBlock FontSize="18">Update</TextBlock>
                     </Button>
                 </Grid>

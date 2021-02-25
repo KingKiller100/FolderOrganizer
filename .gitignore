@@ -1,4 +1,5 @@
 [Dd]ebug/
+[Dd]eploy
 [Oo]bj/
 [Rr]elease/
 
@@ -7,5 +8,7 @@
 [Ll]ogs/
 [Ff]lags/
 .idea/
+
+RuntimeInfo.ini
 
 __pycache__/

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Windows;
 using Controls = System.Windows.Controls;
 using Forms = System.Windows.Forms;
@@ -25,10 +24,10 @@ namespace FolderOrganizer.UI_Lib
                 })
                 {
                     success = dlg.ShowDialog() == Dialogs.CommonFileDialogResult.Ok;
-                    success &= !string.IsNullOrWhiteSpace(dlg.FileName);
                     if (success)
                     {
-                        tb.Text = dlg.FileName;
+                        success &= !string.IsNullOrWhiteSpace(dlg.FileName);
+                        tb.Text = success ? dlg.FileName : string.Empty;
                     }
                 }
             }

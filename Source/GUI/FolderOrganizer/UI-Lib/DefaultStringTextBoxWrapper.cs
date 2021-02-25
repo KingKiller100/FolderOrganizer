@@ -34,5 +34,10 @@ namespace FolderOrganizer.UI_Lib
                 Text = _defText;
             }
         }
+
+        public bool IsDefault()
+        {
+            return Text == _defText;
+        }
     }
 }

@@ -2,11 +2,13 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 import shutil
-import logging
 import os
+import logging
 import time
+import collections
 import numpy as np
 import xml.etree.ElementTree as et
+
 
 import ConfigFile
 import RuntimeData
@@ -100,6 +102,7 @@ class DirectoryEventHandler(FileSystemEventHandler):
 
         FolderManager.MakeSubDirs()
         self.handled = True
+
         for filename in os.listdir(folderCfg.source):
             srcFilepath = os.path.join(folderCfg.source, filename)
             if not os.path.isfile(srcFilepath):
