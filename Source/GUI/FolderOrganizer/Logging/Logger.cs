@@ -107,7 +107,7 @@ namespace FolderOrganizer.Logging
 
         public static void Ftl(string msg, Exception e)
         {
-            Logify(Level.FTL, msg);
+            Logify(Level.FTL, $"Message: {msg}{Environment.NewLine}Exception: {e}");
             throw e;
         }
 

@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using FolderOrganizer.BackEnd;
 using FolderOrganizer.Logging;
 using FolderOrganizer.UI_Lib;
+using Microsoft.Win32;
 
 namespace FolderOrganizer
 {
@@ -14,33 +18,55 @@ namespace FolderOrganizer
     {
         private ScriptWrapper _scriptWrapper;
 
-        private readonly DefaultStringTextBoxWrapper _srcBoxWrapper;
+        private DefaultStringTextBoxWrapper _srcBoxWrapper;
         private DefaultStringTextBoxWrapper _destBoxWrapper;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            Initialize();
+        }
+        
+        private void Initialize()
+        {
             Logger.Open("GUI.log", Logger.Level.DBG);
+
+            SystemRequirements.ReadFromDisk();
+            PythonExe.ReadPathsFromDisk(SystemRequirements.MinPythonVersion);
 
             Logger.Bnr("Application Initialization", "*", 5);
             _srcBoxWrapper = new DefaultStringTextBoxWrapper(tbxSrcDir, "Click search button to select source directory");
             _destBoxWrapper = new DefaultStringTextBoxWrapper(tbxDestDir, "Click search button to select source directory");
             _scriptWrapper = ScriptWrapper.Instance;
-
-            SetEnabledButtons();
+            
             FillSearchTextBoxes();
+
+            if (_scriptWrapper.IsRunning())
+            {
+                btnLaunchScript.IsEnabled = false;
+            }
+            else
+            {
+                btnUpdateScript.IsEnabled = false;
+                btnTerminateScript.IsEnabled = false;
+            }
+
 
             Logger.Bnr("Application Initialized", "*", 5);
         }
-
+        
         private void FillSearchTextBoxes()
         {
-            if (_scriptWrapper._runtimeInfo.TryGetValue(RuntimeKeys.Paths.SourcePath, out var sourcePath))
+            var srcPath = _scriptWrapper.Paths.Source;
+            var destPath = _scriptWrapper.Paths.Destination;
+            
+            if (!string.IsNullOrWhiteSpace(srcPath))
             {
-                _srcBoxWrapper.Text = sourcePath;
+                _srcBoxWrapper.Text = srcPath;
             }
 
-            if (_scriptWrapper._runtimeInfo.TryGetValue(RuntimeKeys.Paths.DestinationPath, out var destPath))
+            if (!string.IsNullOrWhiteSpace(destPath))
             {
                 _destBoxWrapper.Text = destPath;
             }
@@ -75,11 +101,11 @@ namespace FolderOrganizer
 
         private void btnLaunchScript_Click(object sender, RoutedEventArgs e)
         {
-            if (_scriptWrapper.IsRunning())
-                return;
+            _scriptWrapper.SetRuntimePaths(_srcBoxWrapper.Text, _destBoxWrapper.Text);
 
             _scriptWrapper.Launch();
-            SetEnabledButtons();
+            btnLaunchScript.IsEnabled = false;
+            btnUpdateScript.IsEnabled = btnTerminateScript.IsEnabled = true;
         }
 
         private void btnUpdateScript_Click(object sender, RoutedEventArgs e)
@@ -88,7 +114,6 @@ namespace FolderOrganizer
                 return;
 
             _scriptWrapper.Update();
-            SetEnabledButtons();
         }
 
         private void btnTerminateScript_Click(object sender, RoutedEventArgs e)
@@ -97,16 +122,8 @@ namespace FolderOrganizer
                 return;
 
             _scriptWrapper.Terminate();
-            Thread.Sleep(2000);
-            SetEnabledButtons();
-        }
-
-        private void SetEnabledButtons()
-        {
-            var isScriptRunning = _scriptWrapper.IsRunning();
-            btnLaunchScript.IsEnabled = !isScriptRunning;
-            btnUpdateScript.IsEnabled = isScriptRunning;
-            btnTerminateScript.IsEnabled = isScriptRunning;
+            btnLaunchScript.IsEnabled = true;
+            btnUpdateScript.IsEnabled = btnTerminateScript.IsEnabled = false;
         }
     }
 }
