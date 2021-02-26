@@ -1,3 +1,4 @@
+import os
 import sys
 import logging
 
@@ -30,6 +31,9 @@ def Bnr(msg):
     Inf(msg)
 
 def InitializeLogger(level, filepath):
+        
+    open(filepath, "a").close()
+        
     msgFormat = "[%(asctime)s] - [%(levelname)s]: %(message)s"
     logging.basicConfig(filename=filepath, level=level, format=msgFormat)
     
@@ -37,3 +41,6 @@ def InitializeLogger(level, filepath):
     for path in sys.path:
         Dbg("  - {}".format(path))
     Dbg("***System paths concluded***")
+
+def Shutdown():
+    logging.shutdown()

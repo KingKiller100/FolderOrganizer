@@ -34,7 +34,6 @@ class RuntimeData:
     def __init__(self):
         realpath = os.path.realpath(__file__)
         self.cwd = os.path.dirname(realpath)
-        Logger.Inf("Current working directory: '{}'".format(self.cwd))
 
         self.configFolder = self.AssignFolderPath("../../Configurations")
         self.flagsFolder = self.AssignFolderPath("../../Flags")
@@ -45,8 +44,6 @@ class RuntimeData:
     def AssignFolderPath(self, folderStr):
         path = os.path.realpath(
             os.path.join(self.cwd, folderStr))
-        
-        Logger.Inf("Registered path: '{}'".format(path))
         
         if not os.path.exists(path):
             os.makedirs(path)
