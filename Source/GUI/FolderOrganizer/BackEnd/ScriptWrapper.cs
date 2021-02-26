@@ -46,8 +46,8 @@ namespace FolderOrganizer.BackEnd
             public Dictionary<string, string> AsDictionary()
             {
                 var dict = new Dictionary<string, string>();
-                dict[ConfigurationKeys.Paths.SourcePath] = Source;
-                dict[ConfigurationKeys.Paths.DestinationPath] = Destination;
+                dict[ConfigKeys.Paths.SourcePath] = Source;
+                dict[ConfigKeys.Paths.DestinationPath] = Destination;
                 return dict;
             }
         }
@@ -100,19 +100,21 @@ namespace FolderOrganizer.BackEnd
             var flag = RuntimeFlags.Terminate;
             RaiseFlag(flag);
             var flagFilePath = Path.Combine(AppFolders.FlagsDir, flag.ToString());
-            var timeoutCounter = 10;
+
+            var timeoutCounter = SystemRequirements.TerminationTimeoutAttempts;
             while (File.Exists(flagFilePath) && timeoutCounter > 0)
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(SystemRequirements.TerminationTimeout);
                 timeoutCounter--;
             }
+
             ForceClose();
         }
 
         void ForceClose()
         {
             Logger.Inf("Force closing python");
-            _process.Close();
+            _process.Kill();
         }
 
         void RaiseFlag(RuntimeFlags flag)
@@ -160,7 +162,7 @@ namespace FolderOrganizer.BackEnd
             };
             _process.Start();
             
-            _runtimeInfo[ConfigurationKeys.RuntimeInfo.ProcessID] = _process.Id.ToString();
+            _runtimeInfo[ConfigKeys.RuntimeInfo.ProcessID] = _process.Id.ToString();
 
             var processes = Process.GetProcesses();
 
@@ -195,7 +197,7 @@ namespace FolderOrganizer.BackEnd
             if (!IniFile.ReadFile(_runtimeInfoFilePath, _runtimeInfo))
                 return;
 
-            if (!_runtimeInfo.TryGetValue(ConfigurationKeys.RuntimeInfo.ProcessID, out var pidStr))
+            if (!_runtimeInfo.TryGetValue(ConfigKeys.RuntimeInfo.ProcessID, out var pidStr))
                 return;
 
             var pid = int.Parse(pidStr);
@@ -223,7 +225,7 @@ namespace FolderOrganizer.BackEnd
                 return;
 
             {
-                if (pathsIniData.TryGetValue(ConfigurationKeys.Paths.SourcePath, out var sourcePath))
+                if (pathsIniData.TryGetValue(ConfigKeys.Paths.SourcePath, out var sourcePath))
                 {
                     Paths.Source = sourcePath;
                 }
@@ -234,7 +236,7 @@ namespace FolderOrganizer.BackEnd
             }
 
             {
-                if (pathsIniData.TryGetValue(ConfigurationKeys.Paths.DestinationPath, out var destPath))
+                if (pathsIniData.TryGetValue(ConfigKeys.Paths.DestinationPath, out var destPath))
                 {
                     Paths.Destination = destPath;
                 }

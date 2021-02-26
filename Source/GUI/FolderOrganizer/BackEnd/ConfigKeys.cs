@@ -1,10 +1,12 @@
 ﻿namespace FolderOrganizer.BackEnd
 {
-    class ConfigurationKeys
+    class ConfigKeys
     {
         internal struct SystemRequirements
         {
             public const string MinPythonVersion = "MinPythonVersion";
+            public const string TerminationTimeout = "TerminationTimeout";
+            public const string TerminationTimeoutAttempts = "TerminationTimeoutAttempts";
         }
 
         internal struct RuntimeInfo

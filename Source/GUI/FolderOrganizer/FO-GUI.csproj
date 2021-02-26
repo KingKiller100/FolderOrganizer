@@ -103,7 +103,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Application\AppFolders.cs" />
-    <Compile Include="BackEnd\ConfigurationKeys.cs" />
+    <Compile Include="BackEnd\ConfigKeys.cs" />
     <Compile Include="BackEnd\PythonExe.cs" />
     <Compile Include="BackEnd\ScriptWrapper.cs" />
     <Compile Include="BackEnd\SystemRequirements.cs" />

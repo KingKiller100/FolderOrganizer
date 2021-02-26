@@ -45,10 +45,8 @@ namespace FolderOrganizer.BackEnd
                     Logger.Wrn($"No sub key found in path: {path}");
                     continue;
                 }
-                else
-                {
-                    Logger.Inf($"Sub key found in path: {path}");
-                }
+
+                Logger.Inf($"Sub key found in path: {path}");
 
                 foreach (var versionStr in subKey.GetSubKeyNames())
                 {
@@ -79,7 +77,7 @@ namespace FolderOrganizer.BackEnd
                         else if (version > HighestVersion)
                             HighestVersion = version;
                     }
-                    
+
                     _versionsPaths.Add(version, pythonExePath);
                 }
             }
