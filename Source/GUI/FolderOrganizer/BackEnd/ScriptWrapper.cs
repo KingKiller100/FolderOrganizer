@@ -160,13 +160,27 @@ namespace FolderOrganizer.BackEnd
                     CreateNoWindow = true
                 }
             };
+
+            WipeAllExistingFlags();
+
             _process.Start();
-            
+
             _runtimeInfo[ConfigKeys.RuntimeInfo.ProcessID] = _process.Id.ToString();
 
             var processes = Process.GetProcesses();
 
             Logger.Bnr("Script launched", "*", 5);
+        }
+
+        void WipeAllExistingFlags()
+        {
+            var flagsList = Directory.GetFiles(AppFolders.FlagsDir);
+
+            foreach (var flag in flagsList)
+            {
+                Logger.Dbg($"Deleting flag file: {flag}");
+                File.Delete(flag);
+            }
         }
 
         void StoreToDisk()
