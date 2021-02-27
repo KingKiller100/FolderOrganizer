@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using FolderOrganizer.Application;
 using FolderOrganizer.Logging;
 using FolderOrganizer.UILib;
+using Folders = FolderOrganizer.RedirectFolders;
 
 namespace FolderOrganizer.BackEnd
 {
@@ -58,10 +59,12 @@ namespace FolderOrganizer.BackEnd
             Reload,
         }
 
-        private Process _process;
-        public readonly Dictionary<string, string> _runtimeInfo = new Dictionary<string, string>();
         public RuntimePaths Paths { get; private set; }
+        public Folders.UserFolders UserFolders { get; private set; }
 
+        private readonly Dictionary<string, string> _runtimeInfo = new Dictionary<string, string>();
+        private Process _process;
+        
         private readonly string _pathsFilePath;
         private readonly string _scriptFilePath;
         private readonly string _runtimeInfoFilePath;
@@ -139,11 +142,9 @@ namespace FolderOrganizer.BackEnd
 
             Logger.Bnr("Launching script", "*", 5);
 
-            var scriptFilePath = Path.Combine(AppFolders.ScriptsDir, _scriptFilePath);
+            Logger.Inf($"Script path: {_scriptFilePath}");
 
-            Logger.Inf($"Launching script: {scriptFilePath}");
-
-            if (!File.Exists(scriptFilePath))
+            if (!File.Exists(_scriptFilePath))
                 Logger.Ftl("Script doesn't exist!");
 
             var pythonExePath = PythonExe.GetVersionPath(PythonExe.HighestVersion);
@@ -165,11 +166,16 @@ namespace FolderOrganizer.BackEnd
 
             _process.Start();
 
-            _runtimeInfo[ConfigKeys.RuntimeInfo.ProcessID] = _process.Id.ToString();
+            AddInfo(ConfigKeys.RuntimeInfo.ProcessID, _process.Id.ToString());
 
             var processes = Process.GetProcesses();
 
             Logger.Bnr("Script launched", "*", 5);
+        }
+
+        void AddInfo(string key, string value)
+        {
+            _runtimeInfo.Add(key, value);
         }
 
         void WipeAllExistingFlags()
@@ -200,6 +206,7 @@ namespace FolderOrganizer.BackEnd
 
             LoadPaths();
             LoadRuntimeInfo();
+            LoadRedirectFolders();
 
             Logger.Bnr("Load concluded", "*", 5);
         }
@@ -259,7 +266,11 @@ namespace FolderOrganizer.BackEnd
                     Logger.Wrn("Destination path not found");
                 }
             }
+        }
 
+        void LoadRedirectFolders()
+        {
+            UserFolders = new Folders.UserFolders();
         }
     }
 }

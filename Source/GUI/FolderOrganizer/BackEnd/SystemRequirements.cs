@@ -10,23 +10,17 @@ namespace FolderOrganizer.BackEnd
     static class SystemRequirements
     {
         private static Dictionary<string, string> _requirements;
-        public static int TerminationTimeout { get; private set; } = 5050;
-        public static short TerminationTimeoutAttempts { get; private set; } = 55;
+        public static int TerminationTimeout { get; private set; } = 500;
+        public static short TerminationTimeoutAttempts { get; private set; } = 5;
 
         private static string _minPythonVersion;
-        public static Version MinPythonVersion
-        {
-            get => Version.Parse(_minPythonVersion);
-            private set => _minPythonVersion = value.ToString();
-        }
+        public static Version MinPythonVersion => Version.Parse(_minPythonVersion);
 
         public static void ReadFromDisk()
         {
             var path = Path.Combine(AppFolders.ConfigsDir, "SystemRequirements");
             _requirements = new Dictionary<string, string>();
-
             IniFile.ReadFile(path, _requirements);
-
             AssignValues();
         }
 
@@ -40,6 +34,8 @@ namespace FolderOrganizer.BackEnd
         public static T TryAssign<T>(string key)
         {
             var valueStr = _requirements[key];
+            
+            var type = typeof(T);
 
             if (valueStr is T variable)
                 return variable;
@@ -47,19 +43,17 @@ namespace FolderOrganizer.BackEnd
             try
             {
                 //Handling Nullable types i.e, int?, double?, bool? .. etc
-                if (Nullable.GetUnderlyingType(typeof(T)) != null)
+                if (Nullable.GetUnderlyingType(type) != null)
                 {
-                    TypeConverter conv = TypeDescriptor.GetConverter(typeof(T));
+                    TypeConverter conv = TypeDescriptor.GetConverter(type);
                     return (T)conv.ConvertFrom(valueStr);
                 }
-                else
-                {
-                    return (T)Convert.ChangeType(valueStr, typeof(T));
-                }
+
+                return (T)Convert.ChangeType(valueStr, type);
             }
             catch (Exception)
             {
-                return default(T);
+                return default;
             }
         }
     }

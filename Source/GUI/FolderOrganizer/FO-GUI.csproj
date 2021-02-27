@@ -99,6 +99,8 @@
     <Compile Include="UI-Lib\DefaultStringTextBoxWrapper.cs" />
     <Compile Include="UI-Lib\DirectoryDialogHelper.cs" />
     <Compile Include="UI-Lib\IniFile.cs" />
+    <Compile Include="UserFolders\FolderExtensions.cs" />
+    <Compile Include="UserFolders\UserFolders.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -139,9 +141,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Util\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.8">
       <Visible>False</Visible>

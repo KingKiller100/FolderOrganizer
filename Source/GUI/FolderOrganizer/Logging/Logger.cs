@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 using FolderOrganizer.Application;
@@ -32,7 +33,7 @@ namespace FolderOrganizer.Logging
 
         public static bool Open(string filename, Level minLvl, Encoding encoding)
         {
-            var path = Path.Combine(AppFolders.LogsDir, filename);
+            var filepath = Path.Combine(AppFolders.LogsDir, filename);
 
             if (_logFile != null)
             {
@@ -43,7 +44,12 @@ namespace FolderOrganizer.Logging
 
             try
             {
-                _logFile = File.Open(path, FileMode.Append);
+                var dir = Path.GetDirectoryName(filepath);
+                
+                if (!Directory.Exists(filepath))
+                    Directory.CreateDirectory(dir);
+
+                _logFile = File.Open(filepath, FileMode.Append);
                 _encoding = encoding;
                 _minLevel = minLvl;
             }

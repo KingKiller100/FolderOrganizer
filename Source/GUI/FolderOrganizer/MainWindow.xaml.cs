@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using FolderOrganizer.Application;
 using FolderOrganizer.BackEnd;
 using FolderOrganizer.Logging;
 using FolderOrganizer.UI_Lib;
@@ -21,16 +22,22 @@ namespace FolderOrganizer
         private DefaultStringTextBoxWrapper _srcBoxWrapper;
         private DefaultStringTextBoxWrapper _destBoxWrapper;
 
+        private readonly string defFolderCbxStr;
+
+
         public MainWindow()
         {
             InitializeComponent();
 
             Initialize();
+            defFolderCbxStr = cbxSubFolders.Text;
         }
-        
+
         private void Initialize()
         {
-            Logger.Open("GUI.log", Logger.Level.DBG);
+            var logFileName = "GUI.log";
+            if (!Logger.Open(logFileName, Logger.Level.DBG))
+                throw new DirectoryNotFoundException($"Can not create folder {AppFolders.LogsDir} or create open file {logFileName}");
 
             SystemRequirements.ReadFromDisk();
             PythonExe.ReadPathsFromDisk(SystemRequirements.MinPythonVersion);
@@ -39,8 +46,9 @@ namespace FolderOrganizer
             _srcBoxWrapper = new DefaultStringTextBoxWrapper(tbxSrcDir, "Click search button to select source directory");
             _destBoxWrapper = new DefaultStringTextBoxWrapper(tbxDestDir, "Click search button to select source directory");
             _scriptWrapper = ScriptWrapper.Instance;
-            
+
             FillSearchTextBoxes();
+            FillFolders();
 
             if (_scriptWrapper.IsRunning())
             {
@@ -55,12 +63,12 @@ namespace FolderOrganizer
 
             Logger.Bnr("Application Initialized", "*", 5);
         }
-        
+
         private void FillSearchTextBoxes()
         {
             var srcPath = _scriptWrapper.Paths.Source;
             var destPath = _scriptWrapper.Paths.Destination;
-            
+
             if (!string.IsNullOrWhiteSpace(srcPath))
             {
                 _srcBoxWrapper.Text = srcPath;
@@ -69,6 +77,16 @@ namespace FolderOrganizer
             if (!string.IsNullOrWhiteSpace(destPath))
             {
                 _destBoxWrapper.Text = destPath;
+            }
+        }
+
+        void FillFolders()
+        {
+            var folders = _scriptWrapper.UserFolders.SubFolders;
+
+            foreach (var folder in folders)
+            {
+                cbxSubFolders.Items.Add(folder.Key);
             }
         }
 
@@ -124,6 +142,15 @@ namespace FolderOrganizer
             _scriptWrapper.Terminate();
             btnLaunchScript.IsEnabled = true;
             btnUpdateScript.IsEnabled = btnTerminateScript.IsEnabled = false;
+        }
+
+        private void btnAddSubFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var fdrName = cbxSubFolders.Text;
+            if (fdrName == defFolderCbxStr)
+                return;
+
+            _scriptWrapper.UserFolders.AddFolder(); fdrName
         }
     }
 }

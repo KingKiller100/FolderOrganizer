@@ -217,7 +217,7 @@ def UpdateSettings():
 # Main
 runData = RuntimeData.RuntimeData()
 
-Logger.InitializeLogger(logging.INFO, os.path.join(runData.logFolder, "Script.log"))
+Logger.InitializeLogger(logging.INFO, os.path.join(runData.logFolder, "FolderOrganizer.log"))
 dirEventHandler = DirectoryEventHandler()
 folderCfg = FolderConfig()
 redirCfg = RedirectConfig()
