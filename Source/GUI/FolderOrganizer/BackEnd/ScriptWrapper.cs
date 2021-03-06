@@ -95,6 +95,7 @@ namespace FolderOrganizer.BackEnd
 
         public void Update()
         {
+            UserFolders.WriteToDisk();
             RaiseFlag(RuntimeFlags.Reload);
         }
 
@@ -163,19 +164,20 @@ namespace FolderOrganizer.BackEnd
             };
 
             WipeAllExistingFlags();
+            UserFolders.WriteToDisk();
 
             _process.Start();
+            Logger.Inf($"Process \"{pythonExePath}\" running with argument(s): \"{_scriptFilePath}\"");
 
             AddInfo(ConfigKeys.RuntimeInfo.ProcessID, _process.Id.ToString());
-
-            var processes = Process.GetProcesses();
 
             Logger.Bnr("Script launched", "*", 5);
         }
 
         void AddInfo(string key, string value)
         {
-            _runtimeInfo.Add(key, value);
+            Logger.Inf($"Storing runtime info: [{key}: {value}]");
+            _runtimeInfo[key] = value;
         }
 
         void WipeAllExistingFlags()

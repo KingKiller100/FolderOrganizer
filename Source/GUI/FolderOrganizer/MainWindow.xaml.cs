@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
 using FolderOrganizer.Application;
 using FolderOrganizer.BackEnd;
 using FolderOrganizer.Logging;
@@ -23,6 +25,7 @@ namespace FolderOrganizer
         private DefaultStringTextBoxWrapper _destBoxWrapper;
 
         private readonly string defFolderCbxStr;
+        private readonly string defExtensionCbxStr;
 
 
         public MainWindow()
@@ -31,6 +34,7 @@ namespace FolderOrganizer
 
             Initialize();
             defFolderCbxStr = cbxSubFolders.Text;
+            defExtensionCbxStr = cbxExtensions.Text;
         }
 
         private void Initialize()
@@ -48,7 +52,7 @@ namespace FolderOrganizer
             _scriptWrapper = ScriptWrapper.Instance;
 
             FillSearchTextBoxes();
-            FillFolders();
+            PopulateComboBox(cbxSubFolders, _scriptWrapper.UserFolders.GetFolders());
 
             if (_scriptWrapper.IsRunning())
             {
@@ -80,13 +84,13 @@ namespace FolderOrganizer
             }
         }
 
-        void FillFolders()
+        void PopulateComboBox(ComboBox cbx, IEnumerable enumerable)
         {
-            var folders = _scriptWrapper.UserFolders.SubFolders;
+            cbx.Items.Clear();
 
-            foreach (var folder in folders)
+            foreach (string item in enumerable)
             {
-                cbxSubFolders.Items.Add(folder.Key);
+                cbx.Items.Add(item);
             }
         }
 
@@ -144,13 +148,90 @@ namespace FolderOrganizer
             btnUpdateScript.IsEnabled = btnTerminateScript.IsEnabled = false;
         }
 
+        private void cbxSubFolders_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+        }
+
+        private void cbxSubFolders_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (cbxSubFolders.SelectedValue == null)
+                return;
+
+            var uFdrs = _scriptWrapper.UserFolders;
+
+            var extensions = uFdrs.GetExtensions(cbxSubFolders.SelectedValue as string);
+
+            cbxExtensions.Text = string.Empty;
+            PopulateComboBox(cbxExtensions, extensions);
+        }
+
         private void btnAddSubFolder_Click(object sender, RoutedEventArgs e)
         {
             var fdrName = cbxSubFolders.Text;
             if (fdrName == defFolderCbxStr)
                 return;
 
-            _scriptWrapper.UserFolders.AddFolder(); fdrName
+            var uFdrs = _scriptWrapper.UserFolders;
+
+            if (uFdrs.AddFolder(fdrName))
+            {
+                MessageBox.Show($"Folder \"{fdrName}\" added");
+            }
+            else
+            {
+                MessageBox.Show($"Folder \"{fdrName}\" is already registered");
+            }
+            PopulateComboBox(cbxSubFolders, uFdrs.GetFolders());
+        }
+
+        private void btnDeleteSubFolder_Click(object sender, RoutedEventArgs e)
+        {
+            var fdrName = cbxSubFolders.Text;
+            if (fdrName == defFolderCbxStr)
+                return;
+
+            var uFdrs = _scriptWrapper.UserFolders;
+            if (uFdrs.RemoveFolder(fdrName))
+            {
+                MessageBox.Show($"Deleted folder and all extensions: {fdrName}");
+            }
+            PopulateComboBox(cbxSubFolders, uFdrs.GetFolders());
+        }
+
+        private void btnAddExtension_Click(object sender, RoutedEventArgs e)
+        {
+            var fdrName = cbxSubFolders.Text;
+            var extText = cbxExtensions.Text;
+
+            if (extText == defExtensionCbxStr
+                || fdrName == defFolderCbxStr)
+                return;
+
+            var uFdrs = _scriptWrapper.UserFolders;
+
+            MessageBox.Show(!uFdrs.Add(fdrName, extText)
+                ? $"Extension \"{extText}\" already used in another folder"
+                : $"Extension \"{extText}\" added");
+
+            PopulateComboBox(cbxExtensions, uFdrs.GetExtensions(fdrName));
+        }
+
+        private void btnDeleteExtension_Click(object sender, RoutedEventArgs e)
+        {
+            var fdrName = cbxSubFolders.Text;
+            var extText = cbxExtensions.Text;
+
+            if (extText == defExtensionCbxStr
+                || fdrName == defFolderCbxStr)
+                return;
+
+            var uFdrs = _scriptWrapper.UserFolders;
+            if (uFdrs.RemoveExtension(fdrName, extText))
+            {
+                MessageBox.Show($"Deleted extension \"{extText}\" from folder \"{fdrName}\"");
+            }
+
+            PopulateComboBox(cbxExtensions, uFdrs.GetExtensions(fdrName));
         }
     }
 }

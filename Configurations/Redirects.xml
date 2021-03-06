@@ -1,28 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <Folders>
-    <Folder name="Images">
-        <Extensions>
-            <Extension>png</Extension>
-            <Extension>jpg</Extension>
-            <Extension>jpeg</Extension>
-        </Extensions>
-    </Folder>
-    <Folder name="Executables">
-        <Extensions>
-            <Extension>exe</Extension>
-            <Extension>msi</Extension>
-        </Extensions>
-    </Folder>
-    <Folder name="Documents">
-        <Extensions>
-            <Extension>docx</Extension>
-            <Extension>doc</Extension>
-            <Extension>pdf</Extension>
-        </Extensions>
-    </Folder>
-    <Folder name="Zips">
-        <Extensions>
-            <Extension>zip</Extension>
-        </Extensions>
-    </Folder>
+  <Folder name="Images">
+    <Extensions>
+      <Extension>jpeg</Extension>
+      <Extension>jpg</Extension>
+      <Extension>png</Extension>
+    </Extensions>
+  </Folder>
+  <Folder name="Executables">
+    <Extensions>
+      <Extension>exe</Extension>
+      <Extension>msi</Extension>
+    </Extensions>
+  </Folder>
+  <Folder name="Documents">
+    <Extensions>
+      <Extension>doc</Extension>
+      <Extension>docx</Extension>
+      <Extension>pdf</Extension>
+    </Extensions>
+  </Folder>
+  <Folder name="Zips">
+    <Extensions>
+      <Extension>zip</Extension>
+    </Extensions>
+  </Folder>
 </Folders>

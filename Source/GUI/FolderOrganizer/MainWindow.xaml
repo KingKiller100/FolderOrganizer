@@ -77,13 +77,13 @@
 
                     <TextBlock Text="Sub Folders" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
                     <ComboBox x:Name="cbxSubFolders" IsEditable="True" FontSize="18" Grid.Column="1" Margin="5 0 5 0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                              Text="Modify sub folders list" />
+                              Text="Modify sub folders list" MouseEnter="cbxSubFolders_MouseEnter" SelectionChanged="cbxSubFolders_SelectionChanged" />
 
                     <Button x:Name="btnAddSubFolder" Grid.Column="2" Margin="5 0 5 0" Click="btnAddSubFolder_Click">
                         <TextBlock FontSize="18">Add</TextBlock>
                     </Button>
 
-                    <Button x:Name="btnDeleteSubFolder" Grid.Column="3" Margin="0 0 10 0" >
+                    <Button x:Name="btnDeleteSubFolder" Grid.Column="3" Margin="0 0 10 0" Click="btnDeleteSubFolder_Click" >
                         <TextBlock FontSize="18">Delete</TextBlock>
                     </Button>
                 </Grid>
@@ -102,11 +102,11 @@
                     <ComboBox x:Name="cbxExtensions" IsEditable="True" FontSize="18" Grid.Column="1" Margin="5 0 5 0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                               Text="Modify extensions list"  />
 
-                    <Button x:Name="btnAddExtension" Grid.Column="2" Margin="5 0 5 0">
+                    <Button x:Name="btnAddExtension" Grid.Column="2" Margin="5 0 5 0" Click="btnAddExtension_Click">
                         <TextBlock FontSize="18">Add</TextBlock>
                     </Button>
 
-                    <Button x:Name="btnDeleteExtension" Grid.Column="3" Margin="0 0 10 0">
+                    <Button x:Name="btnDeleteExtension" Grid.Column="3" Margin="0 0 10 0" Click="btnDeleteExtension_Click">
                         <TextBlock FontSize="18">Delete</TextBlock>
                     </Button>
                 </Grid>

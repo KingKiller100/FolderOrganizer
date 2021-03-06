@@ -99,7 +99,6 @@
     <Compile Include="UI-Lib\DefaultStringTextBoxWrapper.cs" />
     <Compile Include="UI-Lib\DirectoryDialogHelper.cs" />
     <Compile Include="UI-Lib\IniFile.cs" />
-    <Compile Include="UserFolders\FolderExtensions.cs" />
     <Compile Include="UserFolders\UserFolders.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
