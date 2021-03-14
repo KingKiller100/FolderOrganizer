@@ -40,35 +40,41 @@ namespace FolderOrganizer.RedirectFolders
             if (SubFolders.Any(fdr => folder == fdr.Key))
                 return false;
 
+            Logger.Inf($"Added folder: {folder}");
             SubFolders.Add(folder, new SortedSet<string>());
             return true;
         }
 
         public bool Add(string folder, string extension)
         {
-            if (SubFolders.Any(subFolder => 
+            if (SubFolders.Any(subFolder =>
                 subFolder.Value.Any(ext => extension == ext))
             )
             {
+                Logger.Inf($"Extension \"{extension}\" already exists in folder: {folder}");
                 return false;
             }
 
+            Logger.Inf($"Appending \"{extension}\" to folder: {folder}");
             SubFolders[folder].Add(extension);
             return true;
         }
 
         public bool RemoveExtension(string fdr, string extension)
         {
+            Logger.Inf($"Removing \"{extension}\" from folder: {fdr}");
             return SubFolders[fdr].Remove(extension);
         }
 
         public void RemoveExtensions(string fdr)
         {
+            Logger.Inf($"Removing all extensions from folder: {fdr}");
             SubFolders[fdr].Clear();
         }
 
         public bool RemoveFolder(string fdr)
         {
+            Logger.Inf($"Removing folder: {fdr}");
             return SubFolders.Remove(fdr);
         }
 

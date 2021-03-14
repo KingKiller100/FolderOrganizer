@@ -214,7 +214,7 @@ def FlagUpdateLoop():
     Logger.Bnr("Flag loop terminated")
 
 def UpdateSettings():
-    dirEventHandler.handled = True        
+    #dirEventHandler.handled = True        
 
     FolderManager.SantizeSubFolders()
     FolderManager.SanitizeDestDir()
