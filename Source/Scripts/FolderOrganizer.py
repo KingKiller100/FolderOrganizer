@@ -57,16 +57,24 @@ class RedirectConfig:
             elemTree = et.parse(path)
             self.redirects = {}
             root = elemTree.getroot()
-            for folderItem in root.findall("Folder"):
-                extList = []
-                folder = folderItem.attrib["name"]
-                Logger.Inf("Folder: " + folder)
-                for extsItem in folderItem.findall("Extensions"):
-                    for extItem in extsItem.findall("Extension"):
-                        ext = extItem.text
-                        extList.append(ext)
-                        Logger.Inf("  - Extension: " + ext)
-                self.redirects[folder] = extList
+            try:
+                for folderItem in root.findall("Folder"):
+                    extList = []
+                    folder = folderItem.attrib["name"]
+                    Logger.Inf("Folder: " + folder)
+                    try:
+                        for extsItem in folderItem.findall("Extensions"):
+                            for extItem in extsItem.findall("Extension"):
+                                ext = extItem.text
+                                extList.append(ext)
+                                Logger.Inf("  - Extension: " + ext)
+                            self.redirects[folder] = extList
+                    except:
+                        Logger.Err("Unable to read extensions for folder: {}".format(folder))
+                        raise RuntimeError()
+            except:
+                Logger.Err("Opened but unable to parse file: {}".format(self.settingsFile))
+                raise RuntimeError()
         except:
             Logger.Err("Problem reading file: " + self.settingsFile)
 
