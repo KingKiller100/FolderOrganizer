@@ -51,6 +51,7 @@ class RedirectConfig:
 
     def ReadConfig(self):
         Logger.Inf("File redirect configurations")
+        time.sleep(1)
         try:
             path = os.path.join(runData.configFolder, self.settingsFile)
             elemTree = et.parse(path)
