@@ -5,13 +5,13 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{0a4b90ef-4383-4482-b940-f05b07d491c2}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>FindExecutable.py</StartupFile>
+    <StartupFile>FolderOrganizer.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId />
+    <InterpreterId>Global|PythonCore|3.9</InterpreterId>
     <Name>FO-Scripts</Name>
     <EnableNativeCodeDebugging>True</EnableNativeCodeDebugging>
   </PropertyGroup>
@@ -26,6 +26,13 @@
     <Compile Include="FolderOrganizer.py" />
     <Compile Include="Logger.py" />
     <Compile Include="RuntimeData.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.7" />
+    <InterpreterReference Include="Global|PythonCore|3.9" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="requirements.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

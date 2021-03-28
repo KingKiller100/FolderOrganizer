@@ -202,7 +202,7 @@ def Run():
     FlagUpdateLoop()
     
     elapsedTime = time.time() - startTime
-    Logger.Inf("Total run time: {} secs".format(elapsedTime))
+    Logger.Inf(f'Total run time: {elapsedTime} secs')
 
 def FlagUpdateLoop():
     Logger.Bnr("Flag loop")
@@ -233,20 +233,20 @@ redirCfg = RedirectConfig()
 
 observer = Observer()
 
+if __name__ == "__main__":
+    def main():
+        observer.schedule(dirEventHandler, folderCfg.source, recursive=True)
+        observer.start()
+    
+        try:
+            Run()
+        except Exception as e:
+            Logger.Err("Observer stopping")
+            observer.stop()
+            Logger.Ftl("[Exception] {}".format(e))
+    
+        Logger.Inf("Observer joining")
+        observer.join()
 
-def main():
-    observer.schedule(dirEventHandler, folderCfg.source, recursive=True)
-    observer.start()
 
-    try:
-        Run()
-    except Exception as e:
-        Logger.Inf("Observer stopping")
-        observer.stop()
-        Logger.Ftl("[Exception] {}".format(e))
-
-    Logger.Inf("Observer joining")
-    observer.join()
-
-
-main()
+    main()

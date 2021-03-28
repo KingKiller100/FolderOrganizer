@@ -54,13 +54,19 @@ namespace FolderOrganizer.BackEnd
                     if (productKey == null) continue;
 
                     var installPath = productKey.OpenSubKey("InstallPath");
-                    var pythonExePath = installPath?.GetValue("ExecutablePath").ToString();
+                    var exePath = installPath?.GetValue("ExecutablePath") as string;
+
+                    if (exePath == null)
+                        continue;
+
+                    var pythonExePath = exePath?.ToString();
 
                     if (string.IsNullOrEmpty(pythonExePath)) continue;
 
                     Logger.Inf($"Found version \"{versionStr}\" in path \"{pythonExePath}\"");
 
-                    var version = Version.Parse(versionStr);
+                    var usableVersionStr = versionStr.Split(new[] {' ', ',','-'})[0];
+                    var version = Version.Parse(usableVersionStr);
 
                     if (minVersion > version)
                         continue;
