@@ -36,7 +36,7 @@ namespace FolderOrganizer.Logging
 
             filePath = Path.GetFullPath(Path.ChangeExtension(filePath, ".log"));
 
-            if (_fPath == filePath)
+            if (_fPath.Equals(filePath, StringComparison.OrdinalIgnoreCase))
                 return;
 
             CloseFile();
