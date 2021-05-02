@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Xml;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +29,7 @@ namespace FolderOrganizer.RedirectFolders
             using (var reader = new StreamReader(_redirectsFilePath))
             {
                 var fileEncoding = reader.CurrentEncoding;
-                Logger.Inf($"Redirect file encoding: {fileEncoding.EncodingName}");
+                Logger.Info($"Redirect file encoding: {fileEncoding.EncodingName}");
                 _encoding = fileEncoding;
             }
         }
@@ -40,7 +39,7 @@ namespace FolderOrganizer.RedirectFolders
             if (SubFolders.Any(fdr => folder == fdr.Key))
                 return false;
 
-            Logger.Inf($"Added folder: {folder}");
+            Logger.Info($"Added folder: {folder}");
             SubFolders.Add(folder, new SortedSet<string>());
             return true;
         }
@@ -51,30 +50,30 @@ namespace FolderOrganizer.RedirectFolders
                 subFolder.Value.Any(ext => extension == ext))
             )
             {
-                Logger.Inf($"Extension \"{extension}\" already exists in folder: {folder}");
+                Logger.Info($"Extension \"{extension}\" already exists in folder: {folder}");
                 return false;
             }
 
-            Logger.Inf($"Appending \"{extension}\" to folder: {folder}");
+            Logger.Info($"Appending \"{extension}\" to folder: {folder}");
             SubFolders[folder].Add(extension);
             return true;
         }
 
         public bool RemoveExtension(string fdr, string extension)
         {
-            Logger.Inf($"Removing \"{extension}\" from folder: {fdr}");
+            Logger.Info($"Removing \"{extension}\" from folder: {fdr}");
             return SubFolders[fdr].Remove(extension);
         }
 
         public void RemoveExtensions(string fdr)
         {
-            Logger.Inf($"Removing all extensions from folder: {fdr}");
+            Logger.Info($"Removing all extensions from folder: {fdr}");
             SubFolders[fdr].Clear();
         }
 
         public bool RemoveFolder(string fdr)
         {
-            Logger.Inf($"Removing folder: {fdr}");
+            Logger.Info($"Removing folder: {fdr}");
             return SubFolders.Remove(fdr);
         }
 
@@ -109,10 +108,14 @@ namespace FolderOrganizer.RedirectFolders
                 var fdrName = folderNode.Attributes?["name"].Value;
                 var extensionsNode = folderNode["Extensions"];
                 var fdrExts = new SortedSet<string>();
+                Logger.Debug($"Loading folder from disk: {fdrName}");
+                Logger.Debug($"Loading extensions:");
+
                 foreach (XmlNode extNode in extensionsNode.ChildNodes)
                 {
                     var ext = extNode.InnerText;
                     fdrExts.Add(ext);
+                    Logger.Debug($" - {ext}");
                 }
 
                 SubFolders.Add(fdrName, fdrExts);
@@ -128,17 +131,20 @@ namespace FolderOrganizer.RedirectFolders
             doc.AppendChild(docNode);
 
             var foldersElement = doc.CreateElement("Folders");
-            foreach (var contents in SubFolders)
+            foreach (var folderContents in SubFolders)
             {
                 var folderNode = doc.CreateElement("Folder");
                 var extensionsNode = doc.CreateElement("Extensions");
-                folderNode.SetAttribute("name", contents.Key);
+                folderNode.SetAttribute("name", folderContents.Key);
+                Logger.Debug($"Writing folder to disk: {folderContents.Key}");
+                Logger.Debug($"Writing extensions:");
 
-                foreach (var extension in contents.Value)
+                foreach (var extension in folderContents.Value)
                 {
                     var extNode = doc.CreateElement("Extension");
                     extNode.InnerText = extension;
                     extensionsNode.AppendChild(extNode);
+                    Logger.Debug($" - {extension}");
                 }
 
                 folderNode.AppendChild(extensionsNode);
@@ -148,7 +154,6 @@ namespace FolderOrganizer.RedirectFolders
             doc.AppendChild(foldersElement);
 
             doc.Save(_redirectsFilePath);
-            //doc.Save(Console.Out);
 
             return true;
         }

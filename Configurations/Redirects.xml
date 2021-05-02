@@ -1,16 +1,14 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Folders>
-  <Folder name="Images">
-    <Extensions>
-      <Extension>jpeg</Extension>
-      <Extension>jpg</Extension>
-      <Extension>png</Extension>
-    </Extensions>
-  </Folder>
-  <Folder name="Executables">
+  <Folder name="Programs">
     <Extensions>
       <Extension>exe</Extension>
       <Extension>msi</Extension>
+    </Extensions>
+  </Folder>
+  <Folder name="Zips">
+    <Extensions>
+      <Extension>zip</Extension>
     </Extensions>
   </Folder>
   <Folder name="Documents">
@@ -20,9 +18,11 @@
       <Extension>pdf</Extension>
     </Extensions>
   </Folder>
-  <Folder name="Zips">
+  <Folder name="Pictures">
     <Extensions>
-      <Extension>zip</Extension>
+      <Extension>jpeg</Extension>
+      <Extension>jpg</Extension>
+      <Extension>png</Extension>
     </Extensions>
   </Folder>
 </Folders>

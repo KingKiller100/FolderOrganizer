@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Animation;
 using FolderOrganizer.Application;
 using FolderOrganizer.BackEnd;
 using FolderOrganizer.Logging;
@@ -24,8 +25,8 @@ namespace FolderOrganizer
         private DefaultStringTextBoxWrapper _srcBoxWrapper;
         private DefaultStringTextBoxWrapper _destBoxWrapper;
 
-        private readonly string defFolderCbxStr;
-        private readonly string defExtensionCbxStr;
+        private readonly string _defFolderCbxStr;
+        private readonly string _defExtensionCbxStr;
 
 
         public MainWindow()
@@ -33,24 +34,58 @@ namespace FolderOrganizer
             InitializeComponent();
 
             Initialize();
-            defFolderCbxStr = cbxSubFolders.Text;
-            defExtensionCbxStr = cbxExtensions.Text;
+            _defFolderCbxStr = cbxSubFolders.Text;
+            _defExtensionCbxStr = cbxExtensions.Text;
         }
 
         private void Initialize()
         {
-            var logFileName = "GUI.log";
-            if (!Logger.Open(logFileName, Logger.Level.DBG))
-                throw new DirectoryNotFoundException($"Can not create folder {AppFolders.LogsDir} or create open file {logFileName}");
+            const string StandardLogFileName = @"..\Logs\GUI.log";
 
-            SystemRequirements.ReadFromDisk();
-            PythonExe.ReadPathsFromDisk(SystemRequirements.MinPythonVersion);
+            if (!Logger.Open(StandardLogFileName,
+                Logger.Level.DBG
+                ))
+            {
+                if (!Directory.Exists(AppFolders.LogsDir))
+                {
+                    throw new DirectoryNotFoundException($"Can not create folder {AppFolders.LogsDir}");
+                }
+                throw new FileNotFoundException($"Can not create/open file {StandardLogFileName}");
+            }
 
-            Logger.Bnr("Application Initialization", "*", 5);
+            AppConfig.Initialize();
+            AppConfig.Set("CurrentDirectory", Environment.CurrentDirectory);
+            AppConfig.Set("Configuration",
+#if DEBUG
+                "Debug"
+#else
+                "Release"
+#endif
+            );
+
+            Logger.Banner("Application Initialization", "*", 5);
+
+            AppConfig.ReadFromDisk();
+
+            var logFile = AppConfig.Get("LogFile", StandardLogFileName);
+            Logger.MoveFile(logFile);
+            var logLevelStr = AppConfig.Get("LogLevel", "INF");
+            Logger.SetLevel((Logger.Level)Enum.Parse(typeof(Logger.Level), logLevelStr));
+
+
+            var minPyVersionStr = AppConfig.Get("MinPythonVersion");
+            PythonExe.ReadPathsFromDisk(Version.Parse(minPyVersionStr));
+
+            _scriptWrapper = ScriptWrapper.Instance;
+            SetUpUI();
+
+            Logger.Banner("Application Initialized", "*", 5);
+        }
+
+        private void SetUpUI()
+        {
             _srcBoxWrapper = new DefaultStringTextBoxWrapper(tbxSrcDir, "Click search button to select source directory");
             _destBoxWrapper = new DefaultStringTextBoxWrapper(tbxDestDir, "Click search button to select source directory");
-            _scriptWrapper = ScriptWrapper.Instance;
-
             FillSearchTextBoxes();
             PopulateComboBox(cbxSubFolders, _scriptWrapper.UserFolders.GetFolders());
 
@@ -63,9 +98,6 @@ namespace FolderOrganizer
                 btnUpdateScript.IsEnabled = false;
                 btnTerminateScript.IsEnabled = false;
             }
-
-
-            Logger.Bnr("Application Initialized", "*", 5);
         }
 
         private void FillSearchTextBoxes()
@@ -168,18 +200,18 @@ namespace FolderOrganizer
         private void btnAddSubFolder_Click(object sender, RoutedEventArgs e)
         {
             var fdrName = cbxSubFolders.Text;
-            if (fdrName == defFolderCbxStr)
+            if (fdrName == _defFolderCbxStr)
                 return;
 
             var uFdrs = _scriptWrapper.UserFolders;
 
             if (uFdrs.AddFolder(fdrName))
             {
-                MessageBox.Show($"Folder \"{fdrName}\" added");
+                DisplayMessageBox($"Folder \"{fdrName}\" added");
             }
             else
             {
-                MessageBox.Show($"Folder \"{fdrName}\" is already registered");
+                DisplayMessageBox($"Folder \"{fdrName}\" is already registered");
             }
             PopulateComboBox(cbxSubFolders, uFdrs.GetFolders());
         }
@@ -187,13 +219,13 @@ namespace FolderOrganizer
         private void btnDeleteSubFolder_Click(object sender, RoutedEventArgs e)
         {
             var fdrName = cbxSubFolders.Text;
-            if (fdrName == defFolderCbxStr)
+            if (fdrName == _defFolderCbxStr)
                 return;
 
             var uFdrs = _scriptWrapper.UserFolders;
             if (uFdrs.RemoveFolder(fdrName))
             {
-                MessageBox.Show($"Deleted folder and all extensions: {fdrName}");
+                DisplayMessageBox($"Deleted folder and all extensions: {fdrName}");
             }
             PopulateComboBox(cbxSubFolders, uFdrs.GetFolders());
         }
@@ -203,13 +235,13 @@ namespace FolderOrganizer
             var fdrName = cbxSubFolders.Text;
             var extText = cbxExtensions.Text;
 
-            if (extText == defExtensionCbxStr
-                || fdrName == defFolderCbxStr)
+            if (extText == _defExtensionCbxStr
+                || fdrName == _defFolderCbxStr)
                 return;
 
             var uFdrs = _scriptWrapper.UserFolders;
 
-            MessageBox.Show(!uFdrs.Add(fdrName, extText)
+            DisplayMessageBox(!uFdrs.Add(fdrName, extText)
                 ? $"Extension \"{extText}\" already used in another folder"
                 : $"Extension \"{extText}\" added");
 
@@ -221,17 +253,23 @@ namespace FolderOrganizer
             var fdrName = cbxSubFolders.Text;
             var extText = cbxExtensions.Text;
 
-            if (extText == defExtensionCbxStr
-                || fdrName == defFolderCbxStr)
+            if (extText == _defExtensionCbxStr
+                || fdrName == _defFolderCbxStr)
                 return;
 
             var uFdrs = _scriptWrapper.UserFolders;
             if (uFdrs.RemoveExtension(fdrName, extText))
             {
-                MessageBox.Show($"Deleted extension \"{extText}\" from folder \"{fdrName}\"");
+                DisplayMessageBox($"Deleted extension \"{extText}\" from folder \"{fdrName}\"");
             }
 
             PopulateComboBox(cbxExtensions, uFdrs.GetExtensions(fdrName));
+        }
+
+        private void DisplayMessageBox(string msg)
+        {
+            Logger.Trace(msg);
+            MessageBox.Show(msg);
         }
     }
 }

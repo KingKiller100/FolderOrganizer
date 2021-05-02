@@ -20,11 +20,11 @@ namespace FolderOrganizer.UILib
 
             if (!File.Exists(path))
             {
-                Logger.Wrn($"Failed to find file: {path}");
+                Logger.Warn($"Failed to find file: {path}");
                 return false;
             }
 
-            Logger.Inf($"Reading ini: {path}");
+            Logger.Info($"Reading ini: {path}");
 
             try
             {
@@ -43,13 +43,13 @@ namespace FolderOrganizer.UILib
 
                     var key = line.Substring(0, colonPos);
                     var value = line.Substring(colonPos + 1);
-                    Logger.Inf($"  - [\"{key}\", \"{value}\"]");
+                    Logger.Info($"  - [\"{key}\", \"{value}\"]");
                     data.Add(key, value);
                 }
             }
             catch (Exception e)
             {
-                Logger.Ftl($"Unable to open file: {path}", e);
+                Logger.Fatal($"Unable to open file: {path}", e);
                 return false;
             }
 
@@ -63,7 +63,7 @@ namespace FolderOrganizer.UILib
 
         public static bool WriteFile(string path, IReadOnlyDictionary<string, string> data, Encoding encoding)
         {
-            Logger.Inf($"Writing ini: {path}");
+            Logger.Info($"Writing ini: {path}");
 
             path = Path.ChangeExtension(path, "ini");
             using (var file = File.Open(path, FileMode.Create))
@@ -74,7 +74,7 @@ namespace FolderOrganizer.UILib
                 foreach (var pair in data)
                 {
                     var line = $"{pair.Key}: {pair.Value}{Environment.NewLine}";
-                    Logger.Inf($"Writing configuration: [{pair.Key}, {pair.Value}]");
+                    Logger.Info($"Writing configuration: [{pair.Key}, {pair.Value}]");
                     var lineData = encoding.GetBytes(line);
                     file.Write(lineData, 0, line.Length);
                 }
@@ -106,7 +106,7 @@ namespace FolderOrganizer.UILib
                 
                 if (!fileData.TryGetValue(repKey, out var currentValue)) continue;
                 
-                Logger.Inf($"Replacing key \"{repKey}\": \"{currentValue}\"->\"{repVal}\"");
+                Logger.Info($"Replacing key \"{repKey}\": \"{currentValue}\"->\"{repVal}\"");
                 fileData[repKey] = repVal;
                 success = true;
             }
@@ -123,7 +123,7 @@ namespace FolderOrganizer.UILib
             if (!File.Exists(path))
                 return false;
 
-            Logger.Inf($"Deleting ini: {path}");
+            Logger.Info($"Deleting ini: {path}");
             File.Delete(path);
 
             return true;

@@ -30,7 +30,7 @@ namespace FolderOrganizer.BackEnd
                 get => _src;
                 set
                 {
-                    Logger.Inf($"Source path: \"{value}\"");
+                    Logger.Info($"Source path: \"{value}\"");
                     _src = value;
                 }
             }
@@ -39,7 +39,7 @@ namespace FolderOrganizer.BackEnd
                 get => _dest;
                 set
                 {
-                    Logger.Inf($"Destination path: \"{value}\"");
+                    Logger.Info($"Destination path: \"{value}\"");
                     _dest = value;
                 }
             }
@@ -78,7 +78,7 @@ namespace FolderOrganizer.BackEnd
 
             LoadFromDisk();
 
-            Logger.Inf($"Script filename: {_scriptFilePath}");
+            Logger.Info($"Script filename: {_scriptFilePath}");
         }
 
         public void SetRuntimePaths(string src, string dest)
@@ -101,14 +101,16 @@ namespace FolderOrganizer.BackEnd
 
         public void Terminate()
         {
-            var flag = RuntimeFlags.Terminate;
+            const RuntimeFlags flag = RuntimeFlags.Terminate;
             RaiseFlag(flag);
             var flagFilePath = Path.Combine(AppFolders.FlagsDir, flag.ToString());
 
-            var timeoutCounter = SystemRequirements.TerminationTimeoutAttempts;
+            var timeoutCounter = AppConfig.Get<short>("TerminationTimeoutAttempts");
+            var timeoutDuration = AppConfig.Get<int>("TerminationTimeout");
+
             while (File.Exists(flagFilePath) && timeoutCounter > 0)
             {
-                Thread.Sleep(SystemRequirements.TerminationTimeout);
+                Thread.Sleep(timeoutDuration);
                 timeoutCounter--;
             }
 
@@ -117,7 +119,7 @@ namespace FolderOrganizer.BackEnd
 
         void ForceClose()
         {
-            Logger.Inf("Force closing python");
+            Logger.Info("Force closing python");
             _process.Kill();
         }
 
@@ -127,8 +129,8 @@ namespace FolderOrganizer.BackEnd
             var flagFilePath = Path.Combine(AppFolders.FlagsDir, flag.ToString());
             using (var file = File.Create(flagFilePath))
             {
-                Logger.Inf($"Raising flag: {flag}");
-                Logger.Dbg($"Flag file path: {flagFilePath}");
+                Logger.Info($"Raising flag: {flag}");
+                Logger.Debug($"Flag file path: {flagFilePath}");
             }
         }
 
@@ -141,12 +143,12 @@ namespace FolderOrganizer.BackEnd
         {
             IniFile.EditFile(_pathsFilePath, Paths.AsDictionary());
 
-            Logger.Bnr("Launching script", "*", 5);
+            Logger.Banner("Launching script", "*", 5);
 
-            Logger.Inf($"Script path: {_scriptFilePath}");
+            Logger.Debug($"Script path: {_scriptFilePath}");
 
             if (!File.Exists(_scriptFilePath))
-                Logger.Ftl("Script doesn't exist!");
+                Logger.Fatal("Script doesn't exist!");
 
             var pythonExePath = PythonExe.GetVersionPath(PythonExe.HighestVersion);
 
@@ -167,16 +169,16 @@ namespace FolderOrganizer.BackEnd
             UserFolders.WriteToDisk();
 
             _process.Start();
-            Logger.Inf($"Process \"{pythonExePath}\" running with argument(s): \"{_scriptFilePath}\"");
+            Logger.Info($"Process \"{pythonExePath}\" running with argument(s): \"{_scriptFilePath}\"");
 
             AddInfo(ConfigKeys.RuntimeInfo.ProcessID, _process.Id.ToString());
 
-            Logger.Bnr("Script launched", "*", 5);
+            Logger.Banner("Script launched", "*", 5);
         }
 
         void AddInfo(string key, string value)
         {
-            Logger.Inf($"Storing runtime info: [{key}: {value}]");
+            Logger.Info($"Storing runtime info: [{key}: {value}]");
             _runtimeInfo[key] = value;
         }
 
@@ -186,31 +188,31 @@ namespace FolderOrganizer.BackEnd
 
             foreach (var flag in flagsList)
             {
-                Logger.Dbg($"Deleting flag file: {flag}");
+                Logger.Debug($"Deleting flag file: {flag}");
                 File.Delete(flag);
             }
         }
 
         void StoreToDisk()
         {
-            Logger.Bnr("Storing to disk", "*", 5);
+            Logger.Banner("Storing to disk", "*", 5);
 
             if (File.Exists(_runtimeInfoFilePath))
                 IniFile.EditFile(_runtimeInfoFilePath, _runtimeInfo);
             else
                 IniFile.WriteFile(_runtimeInfoFilePath, _runtimeInfo);
-            Logger.Bnr("Store concluded", "*", 5);
+            Logger.Banner("Store concluded", "*", 5);
         }
 
         void LoadFromDisk()
         {
-            Logger.Bnr("Loading from disk", "*", 5);
+            Logger.Banner("Loading from disk", "*", 5);
 
             LoadPaths();
             LoadRuntimeInfo();
             LoadRedirectFolders();
 
-            Logger.Bnr("Load concluded", "*", 5);
+            Logger.Banner("Load concluded", "*", 5);
         }
 
         void LoadRuntimeInfo()
@@ -224,7 +226,7 @@ namespace FolderOrganizer.BackEnd
                 return;
 
             var pid = int.Parse(pidStr);
-            Logger.Inf($"Process ID loaded: {pid}");
+            Logger.Info($"Process ID loaded: {pid}");
 
             try
             {
@@ -232,12 +234,13 @@ namespace FolderOrganizer.BackEnd
 
                 if (!_process.HasExited)
                 {
-                    Logger.Inf($"Process found");
+                    Logger.Info("Process found");
+                    Logger.Debug($"ID: {_process.Id}");
                 }
             }
             catch
             {
-                Logger.Wrn($"Process not found on system!");
+                Logger.Warn($"Process not found on system!");
             }
         }
 
@@ -254,7 +257,7 @@ namespace FolderOrganizer.BackEnd
                 }
                 else
                 {
-                    Logger.Wrn("Source path not found");
+                    Logger.Warn("Source path not found");
                 }
             }
 
@@ -265,7 +268,7 @@ namespace FolderOrganizer.BackEnd
                 }
                 else
                 {
-                    Logger.Wrn("Destination path not found");
+                    Logger.Warn("Destination path not found");
                 }
             }
         }

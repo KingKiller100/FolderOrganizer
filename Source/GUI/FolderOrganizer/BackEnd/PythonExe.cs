@@ -42,11 +42,11 @@ namespace FolderOrganizer.BackEnd
             {
                 if (!LoadSubKeyFromPath(path, out var subKey))
                 {
-                    Logger.Wrn($"No sub key found in path: {path}");
+                    Logger.Warn($"No sub key found in path: {path}");
                     continue;
                 }
 
-                Logger.Inf($"Sub key found in path: {path}");
+                Logger.Debug($"Sub key found in path: {path}");
 
                 foreach (var versionStr in subKey.GetSubKeyNames())
                 {
@@ -59,13 +59,13 @@ namespace FolderOrganizer.BackEnd
                     if (exePath == null)
                         continue;
 
-                    var pythonExePath = exePath?.ToString();
+                    var pythonExePath = exePath;
 
                     if (string.IsNullOrEmpty(pythonExePath)) continue;
 
-                    Logger.Inf($"Found version \"{versionStr}\" in path \"{pythonExePath}\"");
+                    Logger.Debug($"Found version \"{versionStr}\" in path \"{pythonExePath}\"");
 
-                    var usableVersionStr = versionStr.Split(new[] {' ', ',','-'})[0];
+                    var usableVersionStr = versionStr.Split(' ', ',', '-')[0];
                     var version = Version.Parse(usableVersionStr);
 
                     if (minVersion > version)
@@ -84,7 +84,11 @@ namespace FolderOrganizer.BackEnd
                             HighestVersion = version;
                     }
 
-                    _versionsPaths.Add(version, pythonExePath);
+                    if (!_versionsPaths.ContainsKey(version))
+                    {
+                        _versionsPaths.Add(version, pythonExePath);
+                        Logger.Debug("Added version path");
+                    }
                 }
             }
         }
