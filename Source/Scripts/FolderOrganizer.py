@@ -9,7 +9,6 @@ import collections
 import numpy as np
 import xml.etree.ElementTree as et
 
-
 import ConfigFile
 import RuntimeData
 import Logger
@@ -198,7 +197,7 @@ class FolderManager:
 def Run():
     startTime = time.time()
     
-    runData._flagResolver.AddFlag("RELOAD", UpdateSettings)
+    runData._flagResolver.AddFlag("RELOAD", ReloadImpl)
     FlagUpdateLoop()
     
     elapsedTime = time.time() - startTime
@@ -206,6 +205,9 @@ def Run():
 
 def FlagUpdateLoop():
     Logger.Bnr("Flag loop")
+    
+    Sanitize()
+    CleanUp()
 
     while runData.runningFlag:
         runData.UpdateFlags()
@@ -213,12 +215,15 @@ def FlagUpdateLoop():
     
     Logger.Bnr("Flag loop terminated")
 
-def UpdateSettings():
-    #dirEventHandler.handled = True        
+def ReloadImpl():
+    Sanitize()
+    CleanUp()
 
+def Sanitize():
     FolderManager.SantizeSubFolders()
     FolderManager.SanitizeDestDir()
 
+def CleanUp():
     redirCfg.Update()
     dirEventHandler.Organize()
 

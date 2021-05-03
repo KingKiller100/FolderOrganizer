@@ -223,9 +223,15 @@ namespace FolderOrganizer
                 return;
 
             var uFdrs = _scriptWrapper.UserFolders;
+            var extensions = uFdrs.GetExtensions(fdrName);
             if (uFdrs.RemoveFolder(fdrName))
             {
-                DisplayMessageBox($"Deleted folder and all extensions: {fdrName}");
+                var msg = $"Deleted folder and all extensions: {fdrName}{Environment.NewLine}";
+                foreach (var extension in extensions)
+                {
+                    msg += $" - {extension}{Environment.NewLine}";
+                }
+                DisplayMessageBox(msg);
             }
             PopulateComboBox(cbxSubFolders, uFdrs.GetFolders());
         }
@@ -243,7 +249,7 @@ namespace FolderOrganizer
 
             DisplayMessageBox(!uFdrs.Add(fdrName, extText)
                 ? $"Extension \"{extText}\" already used in another folder"
-                : $"Extension \"{extText}\" added");
+                : $"Extension \"{extText}\" added to {fdrName}");
 
             PopulateComboBox(cbxExtensions, uFdrs.GetExtensions(fdrName));
         }
