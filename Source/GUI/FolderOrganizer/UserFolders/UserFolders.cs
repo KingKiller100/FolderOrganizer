@@ -108,14 +108,14 @@ namespace FolderOrganizer.RedirectFolders
                 var fdrName = folderNode.Attributes?["name"].Value;
                 var extensionsNode = folderNode["Extensions"];
                 var fdrExts = new SortedSet<string>();
-                Logger.Debug($"Loading folder from disk: {fdrName}");
-                Logger.Debug($"Loading extensions:");
+                Logger.Info($"Loading folder from disk: {fdrName}");
+                Logger.Info($"Loading extensions:");
 
                 foreach (XmlNode extNode in extensionsNode.ChildNodes)
                 {
                     var ext = extNode.InnerText;
                     fdrExts.Add(ext);
-                    Logger.Debug($" - {ext}");
+                    Logger.Info($" - {ext}");
                 }
 
                 SubFolders.Add(fdrName, fdrExts);
@@ -136,15 +136,15 @@ namespace FolderOrganizer.RedirectFolders
                 var folderNode = doc.CreateElement("Folder");
                 var extensionsNode = doc.CreateElement("Extensions");
                 folderNode.SetAttribute("name", folderContents.Key);
-                Logger.Debug($"Writing folder to disk: {folderContents.Key}");
-                Logger.Debug($"Writing extensions:");
+                Logger.Info($"Writing folder to disk: {folderContents.Key}");
+                Logger.Info($"Writing extensions:");
 
                 foreach (var extension in folderContents.Value)
                 {
                     var extNode = doc.CreateElement("Extension");
                     extNode.InnerText = extension;
                     extensionsNode.AppendChild(extNode);
-                    Logger.Debug($" - {extension}");
+                    Logger.Info($" - {extension}");
                 }
 
                 folderNode.AppendChild(extensionsNode);

@@ -45,15 +45,20 @@ namespace FolderOrganizer.Logging
                 File.Delete(filePath);
             }
             File.Move(_fPath, filePath);
-            Open(filePath, _minLevel);
+            Open(filePath, _minLevel, _encoding, FileMode.OpenOrCreate);
+        }
+
+        public static bool Open(string filename, Level minLvl, Encoding encoding, FileMode fileMode)
+        {
+            var result = OpenFile(filename, fileMode);
+            ChangeEncoding(encoding);
+            SetLevel(minLvl);
+            return result;
         }
 
         public static bool Open(string filename, Level minLvl, Encoding encoding)
         {
-            var result = OpenFile(filename);
-            ChangeEncoding(encoding);
-            SetLevel(minLvl);
-            return result;
+            return Open(filename, minLvl, encoding, FileMode.Create);
         }
 
         public static bool Open(string filename, Level minLvl)
@@ -80,7 +85,7 @@ namespace FolderOrganizer.Logging
 
         public static bool IsOpen()
         {
-            return _logFile == null || _logFile != Stream.Null;
+            return _logFile != null && _logFile != Stream.Null;
         }
 
         public static void CloseFile()
@@ -158,7 +163,7 @@ namespace FolderOrganizer.Logging
 
         #region private methods
 
-        private static bool OpenFile(string filepath)
+        private static bool OpenFile(string filepath, FileMode fileMode)
         {
             if (_logFile != null)
             {
@@ -176,7 +181,7 @@ namespace FolderOrganizer.Logging
                 }
 
                 _fPath = Path.GetFullPath(Path.ChangeExtension(filepath, ".log"));
-                _logFile = File.Create(filepath);
+                _logFile = File.Open(filepath, fileMode, FileAccess.ReadWrite);
             }
             catch (Exception e)
             {

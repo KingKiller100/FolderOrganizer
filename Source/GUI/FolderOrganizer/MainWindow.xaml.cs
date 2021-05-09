@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media.Animation;
 using FolderOrganizer.Application;
 using FolderOrganizer.BackEnd;
 using FolderOrganizer.Logging;
 using FolderOrganizer.UI_Lib;
-using Microsoft.Win32;
 
 namespace FolderOrganizer
 {
@@ -40,10 +35,10 @@ namespace FolderOrganizer
 
         private void Initialize()
         {
-            const string StandardLogFileName = @"..\Logs\GUI.log";
+            string StandardLogFileName = @"GUI.log";
 
-            if (!Logger.Open(StandardLogFileName,
-                Logger.Level.DBG
+            if (!Logger.Open(Path.Combine(AppFolders.LogsDir, StandardLogFileName),
+                Logger.Level.INF
                 ))
             {
                 if (!Directory.Exists(AppFolders.LogsDir))
@@ -67,8 +62,8 @@ namespace FolderOrganizer
 
             AppConfig.ReadFromDisk();
 
-            var logFile = AppConfig.Get("LogFile", StandardLogFileName);
-            Logger.MoveFile(logFile);
+            var logFile = AppConfig.Get("LogFilename", StandardLogFileName);
+            Logger.MoveFile(Path.Combine(AppFolders.LogsDir, logFile));
             var logLevelStr = AppConfig.Get("LogLevel", "INF");
             Logger.SetLevel((Logger.Level)Enum.Parse(typeof(Logger.Level), logLevelStr));
 
