@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 using FolderOrganizer.Application;
 using FolderOrganizer.Logging;
@@ -47,9 +42,11 @@ namespace FolderOrganizer.BackEnd
 
             public Dictionary<string, string> AsDictionary()
             {
-                var dict = new Dictionary<string, string>();
-                dict[ConfigKeys.Paths.SourcePath] = Source;
-                dict[ConfigKeys.Paths.DestinationPath] = Destination;
+                var dict = new Dictionary<string, string>
+                {
+                    [ConfigKeys.Paths.SourcePath] = Source,
+                    [ConfigKeys.Paths.DestinationPath] = Destination
+                };
                 return dict;
             }
         }
@@ -149,8 +146,8 @@ namespace FolderOrganizer.BackEnd
 
             ScriptFlags.WipeAll();
             UserFolders.WriteToDisk();
-
             _process.Start();
+
             Logger.Info($"Process \"{pythonExePath}\" running with argument(s): \"{_scriptFilePath}\"");
 
             AddInfo(ConfigKeys.RuntimeInfo.ProcessID, _process.Id.ToString());
@@ -169,9 +166,14 @@ namespace FolderOrganizer.BackEnd
             Logger.Banner("Storing to disk", "*", 5);
 
             if (File.Exists(_runtimeInfoFilePath))
+            {
                 IniFile.EditFile(_runtimeInfoFilePath, _runtimeInfo);
+            }
             else
+            {
                 IniFile.WriteFile(_runtimeInfoFilePath, _runtimeInfo);
+            }
+
             Logger.Banner("Store concluded", "*", 5);
         }
 
@@ -188,8 +190,6 @@ namespace FolderOrganizer.BackEnd
 
         void LoadRuntimeInfo()
         {
-            var exist = Directory.Exists(_runtimeInfoFilePath);
-
             if (!IniFile.ReadFile(_runtimeInfoFilePath, _runtimeInfo))
                 return;
 
