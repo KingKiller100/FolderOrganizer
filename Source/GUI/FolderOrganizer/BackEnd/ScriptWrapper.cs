@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using FolderOrganizer.Application;
 using FolderOrganizer.Logging;
 using FolderOrganizer.UILib;
@@ -53,12 +54,6 @@ namespace FolderOrganizer.BackEnd
             }
         }
 
-        private enum RuntimeFlags
-        {
-            Terminate,
-            Reload,
-        }
-
         public RuntimePaths Paths { get; private set; }
         public Folders.UserFolders UserFolders { get; private set; }
 
@@ -77,6 +72,7 @@ namespace FolderOrganizer.BackEnd
             Paths = new RuntimePaths();
 
             LoadFromDisk();
+            ScriptFlags.Initialize();;
 
             Logger.Info($"Script filename: {_scriptFilePath}");
         }
@@ -96,42 +92,28 @@ namespace FolderOrganizer.BackEnd
         public void Update()
         {
             UserFolders.WriteToDisk();
-            RaiseFlag(RuntimeFlags.Reload);
+            ScriptFlags.RaiseFlag(ScriptFlags.RuntimeFlags.Reload);
+        }
+
+        public void Update(Button btnUpdate)
+        {
+            UserFolders.WriteToDisk();
+            btnUpdate.IsEnabled = false;
+            ScriptFlags.WaitTilResolved(ScriptFlags.RuntimeFlags.Terminate);
+            btnUpdate.IsEnabled = true;
         }
 
         public void Terminate()
         {
-            const RuntimeFlags flag = RuntimeFlags.Terminate;
-            RaiseFlag(flag);
-            var flagFilePath = Path.Combine(AppFolders.FlagsDir, flag.ToString());
-
-            var timeoutCounter = AppConfig.Get<short>("TerminationTimeoutAttempts");
-            var timeoutDuration = AppConfig.Get<int>("TerminationTimeout");
-
-            while (File.Exists(flagFilePath) && timeoutCounter > 0)
-            {
-                Thread.Sleep(timeoutDuration);
-                timeoutCounter--;
-            }
-
+            ScriptFlags.WaitTilResolved(ScriptFlags.RuntimeFlags.Terminate);
             ForceClose();
         }
 
         void ForceClose()
         {
             Logger.Info("Force closing python");
-            _process.Kill();
-        }
-
-        void RaiseFlag(RuntimeFlags flag)
-        {
-
-            var flagFilePath = Path.Combine(AppFolders.FlagsDir, flag.ToString());
-            using (var file = File.Create(flagFilePath))
-            {
-                Logger.Info($"Raising flag: {flag}");
-                Logger.Debug($"Flag file path: {flagFilePath}");
-            }
+            if ( _process != null && !_process.HasExited )
+                _process.Kill();
         }
 
         public bool IsRunning()
@@ -165,7 +147,7 @@ namespace FolderOrganizer.BackEnd
                 }
             };
 
-            WipeAllExistingFlags();
+            ScriptFlags.WipeAll();
             UserFolders.WriteToDisk();
 
             _process.Start();
@@ -181,18 +163,7 @@ namespace FolderOrganizer.BackEnd
             Logger.Info($"Storing runtime info: [{key}: {value}]");
             _runtimeInfo[key] = value;
         }
-
-        void WipeAllExistingFlags()
-        {
-            var flagsList = Directory.GetFiles(AppFolders.FlagsDir);
-
-            foreach (var flag in flagsList)
-            {
-                Logger.Debug($"Deleting flag file: {flag}");
-                File.Delete(flag);
-            }
-        }
-
+        
         void StoreToDisk()
         {
             Logger.Banner("Storing to disk", "*", 5);

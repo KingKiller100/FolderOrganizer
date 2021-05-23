@@ -17,6 +17,14 @@ namespace FolderOrganizer.BackEnd
         public static void Initialize()
         {
             _requirements = new Dictionary<string, string>();
+            Set("CurrentDirectory", Environment.CurrentDirectory);
+            Set("Configuration",
+#if DEBUG
+                "Debug"
+#else
+                "Release"
+#endif
+            );
         }
 
         public static void ReadFromDisk()

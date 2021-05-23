@@ -253,5 +253,4 @@ if __name__ == "__main__":
         Logger.Inf("Observer joining")
         observer.join()
 
-
     main()

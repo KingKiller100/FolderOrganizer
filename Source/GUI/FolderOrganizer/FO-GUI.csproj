@@ -96,6 +96,7 @@
     <Compile Include="Application\AppFolders.cs" />
     <Compile Include="BackEnd\ConfigKeys.cs" />
     <Compile Include="BackEnd\PythonExe.cs" />
+    <Compile Include="BackEnd\ScriptFlags.cs" />
     <Compile Include="BackEnd\ScriptWrapper.cs" />
     <Compile Include="Application\AppConfig.cs" />
     <Compile Include="Logging\Logger.cs" />

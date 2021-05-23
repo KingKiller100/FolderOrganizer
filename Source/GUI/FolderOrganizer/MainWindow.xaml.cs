@@ -35,11 +35,9 @@ namespace FolderOrganizer
 
         private void Initialize()
         {
-            string StandardLogFileName = @"GUI.log";
+            var StandardLogFileName = @"GUI.log";
 
-            if (!Logger.Open(Path.Combine(AppFolders.LogsDir, StandardLogFileName),
-                Logger.Level.INF
-                ))
+            if (!Logger.Open(Path.Combine(AppFolders.LogsDir, StandardLogFileName), Logger.Level.INF))
             {
                 if (!Directory.Exists(AppFolders.LogsDir))
                 {
@@ -49,14 +47,6 @@ namespace FolderOrganizer
             }
 
             AppConfig.Initialize();
-            AppConfig.Set("CurrentDirectory", Environment.CurrentDirectory);
-            AppConfig.Set("Configuration",
-#if DEBUG
-                "Debug"
-#else
-                "Release"
-#endif
-            );
 
             Logger.Banner("Application Initialization", "*", 5);
 
@@ -162,7 +152,7 @@ namespace FolderOrganizer
             if (!_scriptWrapper.IsRunning())
                 return;
 
-            _scriptWrapper.Update();
+            _scriptWrapper.Update(btnUpdateScript);
         }
 
         private void btnTerminateScript_Click(object sender, RoutedEventArgs e)
