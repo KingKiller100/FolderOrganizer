@@ -73,18 +73,23 @@
                         <ColumnDefinition Width="350"/>
                         <ColumnDefinition Width="120"/>
                         <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="120"/>
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Text="Sub Folders" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20"/>
                     <ComboBox x:Name="cbxSubFolders" IsEditable="True" FontSize="18" Grid.Column="1" Margin="5 0 5 0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                              Text="Modify sub folders list" MouseEnter="cbxSubFolders_MouseEnter" SelectionChanged="cbxSubFolders_SelectionChanged" />
+                              Text="Modify sub folders list" SelectionChanged="cbxSubFolders_SelectionChanged" />
 
                     <Button x:Name="btnAddSubFolder" Grid.Column="2" Margin="5 0 5 0" Click="btnAddSubFolder_Click">
                         <TextBlock FontSize="18">Add</TextBlock>
                     </Button>
 
-                    <Button x:Name="btnDeleteSubFolder" Grid.Column="3" Margin="0 0 10 0" Click="btnDeleteSubFolder_Click" >
+                    <Button x:Name="btnDeleteSubFolder" Grid.Column="3" Margin="0 0 5 0" Click="btnDeleteSubFolder_Click" >
                         <TextBlock FontSize="18">Delete</TextBlock>
+                    </Button>
+
+                    <Button x:Name="btnDeleteAllSubFolders" Grid.Column="4" Margin="0 0 10 0" Click="btnDeleteAllSubFolders_Click" >
+                        <TextBlock FontSize="18">Delete All</TextBlock>
                     </Button>
                 </Grid>
 
@@ -94,6 +99,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="350"/>
+                        <ColumnDefinition Width="120"/>
                         <ColumnDefinition Width="120"/>
                         <ColumnDefinition Width="120"/>
                     </Grid.ColumnDefinitions>
@@ -106,8 +112,12 @@
                         <TextBlock FontSize="18">Add</TextBlock>
                     </Button>
 
-                    <Button x:Name="btnDeleteExtension" Grid.Column="3" Margin="0 0 10 0" Click="btnDeleteExtension_Click">
+                    <Button x:Name="btnDeleteExtension" Grid.Column="3" Margin="0 0 5 0" Click="btnDeleteExtension_Click">
                         <TextBlock FontSize="18">Delete</TextBlock>
+                    </Button>
+
+                    <Button x:Name="btnDeleteAllExtensions" Grid.Column="4" Margin="0 0 10 0" Click="btnDeleteAllExtensions_Click">
+                        <TextBlock FontSize="18">Delete All</TextBlock>
                     </Button>
                 </Grid>
 
@@ -120,17 +130,23 @@
                         <ColumnDefinition Width="150"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="150"/>
                     </Grid.ColumnDefinitions>
 
                     <Button x:Name="btnLaunchScript" Grid.Column="0" Margin="0 0 10 0" Click="btnLaunchScript_Click">
                         <TextBlock FontSize="18">Launch</TextBlock>
                     </Button>
 
-                    <Button x:Name="btnTerminateScript" Grid.Column="2" Margin="0 0 10 0" Click="btnTerminateScript_Click">
+                    <Button x:Name="btnSaveSettings" Grid.Column="2" Margin="0 0 10 0" Click="btnSaveSettings_Click">
+                        <TextBlock FontSize="18">Save</TextBlock>
+                    </Button>
+
+                    <Button x:Name="btnTerminateScript" Grid.Column="4" Margin="0 0 10 0" Click="btnTerminateScript_Click">
                         <TextBlock FontSize="18">Terminate</TextBlock>
                     </Button>
 
-                    <Button x:Name="btnUpdateScript" Grid.Column="4" Margin="0 0 10 0" Click="btnUpdateScript_Click">
+                    <Button x:Name="btnUpdateScript" Grid.Column="6" Margin="0 0 10 0" Click="btnUpdateScript_Click">
                         <TextBlock FontSize="18">Update</TextBlock>
                     </Button>
                 </Grid>

@@ -10,11 +10,11 @@ using Folders = FolderOrganizer.RedirectFolders;
 namespace FolderOrganizer.BackEnd
 {
 
-    class ScriptWrapper
+    class ScriptInterface
     {
-        private static ScriptWrapper _instance = null;
+        private static ScriptInterface _instance = null;
 
-        public static ScriptWrapper Instance => _instance ?? (_instance = new ScriptWrapper());
+        public static ScriptInterface Instance => _instance ?? (_instance = new ScriptInterface());
 
         internal class RuntimePaths
         {
@@ -61,7 +61,7 @@ namespace FolderOrganizer.BackEnd
         private readonly string _scriptFilePath;
         private readonly string _runtimeInfoFilePath;
 
-        ScriptWrapper()
+        ScriptInterface()
         {
             _pathsFilePath = Path.Combine(AppFolders.ConfigsDir, "Paths.ini");
             _scriptFilePath = Path.Combine(AppFolders.ScriptsDir, "FolderOrganizer.py");
@@ -89,14 +89,15 @@ namespace FolderOrganizer.BackEnd
         public void Update()
         {
             UserFolders.WriteToDisk();
-            ScriptFlags.RaiseFlag(ScriptFlags.RuntimeFlags.Reload);
+            Terminate();
+            LaunchImpl();
+            //ScriptFlags.RaiseFlag(ScriptFlags.RuntimeFlags.Reload);
         }
 
         public void Update(Button btnUpdate)
         {
-            UserFolders.WriteToDisk();
             btnUpdate.IsEnabled = false;
-            ScriptFlags.WaitTilResolved(ScriptFlags.RuntimeFlags.Terminate);
+            Update();
             btnUpdate.IsEnabled = true;
         }
 

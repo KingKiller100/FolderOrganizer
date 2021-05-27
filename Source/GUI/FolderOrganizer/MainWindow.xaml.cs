@@ -15,7 +15,7 @@ namespace FolderOrganizer
     /// </summary>
     public partial class MainWindow : Window
     {
-        private ScriptWrapper _scriptWrapper;
+        private ScriptInterface _scriptInterface;
 
         private DefaultStringTextBoxWrapper _srcBoxWrapper;
         private DefaultStringTextBoxWrapper _destBoxWrapper;
@@ -61,7 +61,7 @@ namespace FolderOrganizer
             var minPyVersionStr = AppConfig.Get("MinPythonVersion");
             PythonExe.ReadPathsFromDisk(Version.Parse(minPyVersionStr));
 
-            _scriptWrapper = ScriptWrapper.Instance;
+            _scriptInterface = ScriptInterface.Instance;
             SetUpUI();
 
             Logger.Banner("Application Initialized", "*", 5);
@@ -72,11 +72,12 @@ namespace FolderOrganizer
             _srcBoxWrapper = new DefaultStringTextBoxWrapper(tbxSrcDir, "Click search button to select source directory");
             _destBoxWrapper = new DefaultStringTextBoxWrapper(tbxDestDir, "Click search button to select source directory");
             FillSearchTextBoxes();
-            PopulateComboBox(cbxSubFolders, _scriptWrapper.UserFolders.GetFolders());
+            PopulateComboBox(cbxSubFolders, _scriptInterface.UserFolders.GetFolders());
 
-            if (_scriptWrapper.IsRunning())
+            if (_scriptInterface.IsRunning())
             {
                 btnLaunchScript.IsEnabled = false;
+                btnSaveSettings.IsEnabled = false;
             }
             else
             {
@@ -87,8 +88,8 @@ namespace FolderOrganizer
 
         private void FillSearchTextBoxes()
         {
-            var srcPath = _scriptWrapper.Paths.Source;
-            var destPath = _scriptWrapper.Paths.Destination;
+            var srcPath = _scriptInterface.Paths.Source;
+            var destPath = _scriptInterface.Paths.Destination;
 
             if (!string.IsNullOrWhiteSpace(srcPath))
             {
@@ -140,41 +141,44 @@ namespace FolderOrganizer
 
         private void btnLaunchScript_Click(object sender, RoutedEventArgs e)
         {
-            _scriptWrapper.SetRuntimePaths(_srcBoxWrapper.Text, _destBoxWrapper.Text);
+            _scriptInterface.SetRuntimePaths(_srcBoxWrapper.Text, _destBoxWrapper.Text);
 
-            _scriptWrapper.Launch();
-            btnLaunchScript.IsEnabled = false;
+            _scriptInterface.Launch();
+            btnLaunchScript.IsEnabled = btnSaveSettings.IsEnabled = false;
             btnUpdateScript.IsEnabled = btnTerminateScript.IsEnabled = true;
+        }
+        private void btnSaveSettings_Click(object sender, RoutedEventArgs e)
+        {
+            _scriptInterface.UserFolders.WriteToDisk();
+            DisplayMessageBox("Settings Saved!");
         }
 
         private void btnUpdateScript_Click(object sender, RoutedEventArgs e)
         {
-            if (!_scriptWrapper.IsRunning())
+            if (!_scriptInterface.IsRunning())
                 return;
 
-            _scriptWrapper.Update(btnUpdateScript);
+            _scriptInterface.Update(btnUpdateScript);
         }
 
         private void btnTerminateScript_Click(object sender, RoutedEventArgs e)
         {
-            if (!_scriptWrapper.IsRunning())
+            if (!_scriptInterface.IsRunning())
                 return;
 
-            _scriptWrapper.Terminate();
-            btnLaunchScript.IsEnabled = true;
+            _scriptInterface.Terminate();
+            btnLaunchScript.IsEnabled = btnSaveSettings.IsEnabled = true;
             btnUpdateScript.IsEnabled = btnTerminateScript.IsEnabled = false;
         }
 
-        private void cbxSubFolders_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-        }
+        #region SubFolderUI
 
         private void cbxSubFolders_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             if (cbxSubFolders.SelectedValue == null)
                 return;
 
-            var uFdrs = _scriptWrapper.UserFolders;
+            var uFdrs = _scriptInterface.UserFolders;
 
             var extensions = uFdrs.GetExtensions(cbxSubFolders.SelectedValue as string);
 
@@ -185,10 +189,13 @@ namespace FolderOrganizer
         private void btnAddSubFolder_Click(object sender, RoutedEventArgs e)
         {
             var fdrName = cbxSubFolders.Text;
-            if (fdrName == _defFolderCbxStr)
+            if (fdrName == _defFolderCbxStr || string.IsNullOrWhiteSpace(fdrName))
+            {
+                DisplayMessageBox("Folder name cannot be empty");
                 return;
+            }
 
-            var uFdrs = _scriptWrapper.UserFolders;
+            var uFdrs = _scriptInterface.UserFolders;
 
             if (uFdrs.AddFolder(fdrName))
             {
@@ -204,10 +211,13 @@ namespace FolderOrganizer
         private void btnDeleteSubFolder_Click(object sender, RoutedEventArgs e)
         {
             var fdrName = cbxSubFolders.Text;
-            if (fdrName == _defFolderCbxStr)
+            if (fdrName == _defFolderCbxStr || string.IsNullOrWhiteSpace(fdrName))
+            {
+                DisplayMessageBox("Folder name cannot be empty");
                 return;
+            }
 
-            var uFdrs = _scriptWrapper.UserFolders;
+            var uFdrs = _scriptInterface.UserFolders;
             var extensions = uFdrs.GetExtensions(fdrName);
             if (uFdrs.RemoveFolder(fdrName))
             {
@@ -221,16 +231,38 @@ namespace FolderOrganizer
             PopulateComboBox(cbxSubFolders, uFdrs.GetFolders());
         }
 
+        private void btnDeleteAllSubFolders_Click(object sender, RoutedEventArgs e)
+        {
+            var uFdrs = _scriptInterface.UserFolders;
+            var folders = uFdrs.GetFolders();
+
+            foreach (var folder in folders)
+            {
+                cbxSubFolders.Text = folder;
+                btnDeleteAllExtensions_Click(sender, e);
+                DisplayMessageBox($"Deleting folder: {folder}");
+            }
+
+            uFdrs.RemoveAll();
+        }
+
+        #endregion
+
+
+        #region ExtensionsUI
         private void btnAddExtension_Click(object sender, RoutedEventArgs e)
         {
             var fdrName = cbxSubFolders.Text;
             var extText = cbxExtensions.Text;
 
-            if (extText == _defExtensionCbxStr
-                || fdrName == _defFolderCbxStr)
+            if (extText == _defExtensionCbxStr || string.IsNullOrWhiteSpace(extText)
+                                               || fdrName == _defFolderCbxStr || string.IsNullOrWhiteSpace(fdrName))
+            {
+                DisplayMessageBox("Folder name or extension type cannot be empty");
                 return;
+            }
 
-            var uFdrs = _scriptWrapper.UserFolders;
+            var uFdrs = _scriptInterface.UserFolders;
 
             DisplayMessageBox(!uFdrs.Add(fdrName, extText)
                 ? $"Extension \"{extText}\" already used in another folder"
@@ -244,11 +276,14 @@ namespace FolderOrganizer
             var fdrName = cbxSubFolders.Text;
             var extText = cbxExtensions.Text;
 
-            if (extText == _defExtensionCbxStr
-                || fdrName == _defFolderCbxStr)
+            if (extText == _defExtensionCbxStr || string.IsNullOrWhiteSpace(extText)
+                                               || fdrName == _defFolderCbxStr || string.IsNullOrWhiteSpace(fdrName))
+            {
+                DisplayMessageBox("Folder name or extension type cannot be empty");
                 return;
+            }
 
-            var uFdrs = _scriptWrapper.UserFolders;
+            var uFdrs = _scriptInterface.UserFolders;
             if (uFdrs.RemoveExtension(fdrName, extText))
             {
                 DisplayMessageBox($"Deleted extension \"{extText}\" from folder \"{fdrName}\"");
@@ -257,10 +292,35 @@ namespace FolderOrganizer
             PopulateComboBox(cbxExtensions, uFdrs.GetExtensions(fdrName));
         }
 
+        private void btnDeleteAllExtensions_Click(object sender, RoutedEventArgs e)
+        {
+            var fdrName = cbxSubFolders.Text;
+
+            if (fdrName == _defFolderCbxStr || string.IsNullOrWhiteSpace(fdrName))
+            {
+                DisplayMessageBox("Folder name cannot be empty");
+                return;
+            }
+
+            var uFdrs = _scriptInterface.UserFolders;
+            var extensions = uFdrs.GetExtensions(fdrName);
+
+            uFdrs.RemoveExtensions(fdrName);
+            var msg = $"Deleted all extensions from {fdrName}: {fdrName}{Environment.NewLine}";
+            foreach (var extension in extensions)
+            {
+                msg += $" - {extension}{Environment.NewLine}";
+            }
+            DisplayMessageBox(msg);
+        }
+
+        #endregion
+
         private void DisplayMessageBox(string msg)
         {
             Logger.Trace(msg);
             MessageBox.Show(msg);
         }
+
     }
 }
