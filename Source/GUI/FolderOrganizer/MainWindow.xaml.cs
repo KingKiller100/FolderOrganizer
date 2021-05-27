@@ -141,6 +141,12 @@ namespace FolderOrganizer
 
         private void btnLaunchScript_Click(object sender, RoutedEventArgs e)
         {
+            if ( !(Directory.Exists(_srcBoxWrapper.Text) && Directory.Exists(_destBoxWrapper.Text)) )
+            {
+                DisplayMessageBox("Source directory and destination directory must both exist. Please search for existing directories to manage");
+                return;
+            }
+
             _scriptInterface.SetRuntimePaths(_srcBoxWrapper.Text, _destBoxWrapper.Text);
 
             _scriptInterface.Launch();
@@ -149,6 +155,12 @@ namespace FolderOrganizer
         }
         private void btnSaveSettings_Click(object sender, RoutedEventArgs e)
         {
+            if (!(Directory.Exists(_srcBoxWrapper.Text) && Directory.Exists(_destBoxWrapper.Text)))
+            {
+                DisplayMessageBox("Source directory and destination directory must both exist. Please search for existing directories to manage");
+                return;
+            }
+
             _scriptInterface.UserFolders.WriteToDisk();
             DisplayMessageBox("Settings Saved!");
         }
