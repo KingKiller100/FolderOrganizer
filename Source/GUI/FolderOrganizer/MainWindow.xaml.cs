@@ -209,15 +209,11 @@ namespace FolderOrganizer
 
             var uFdrs = _scriptInterface.UserFolders;
 
-            if (uFdrs.AddFolder(fdrName))
-            {
-                DisplayMessageBox($"Folder \"{fdrName}\" added");
-            }
-            else
-            {
-                DisplayMessageBox($"Folder \"{fdrName}\" is already registered");
-            }
+            DisplayMessageBox(uFdrs.AddFolder(fdrName)
+                ? $"Folder \"{fdrName}\" added"
+                : $"Folder \"{fdrName}\" is already registered");
             PopulateComboBox(cbxSubFolders, uFdrs.GetFolders());
+            PopulateComboBox(cbxExtensions, uFdrs.GetExtensions(fdrName));
         }
 
         private void btnDeleteSubFolder_Click(object sender, RoutedEventArgs e)
@@ -241,6 +237,7 @@ namespace FolderOrganizer
                 DisplayMessageBox(msg);
             }
             PopulateComboBox(cbxSubFolders, uFdrs.GetFolders());
+            cbxExtensions.Items.Clear();
         }
 
         private void btnDeleteAllSubFolders_Click(object sender, RoutedEventArgs e)
@@ -256,6 +253,7 @@ namespace FolderOrganizer
             }
 
             uFdrs.RemoveAll();
+            cbxSubFolders.Items.Clear();
         }
 
         #endregion
@@ -317,13 +315,14 @@ namespace FolderOrganizer
             var uFdrs = _scriptInterface.UserFolders;
             var extensions = uFdrs.GetExtensions(fdrName);
 
-            uFdrs.RemoveExtensions(fdrName);
-            var msg = $"Deleted all extensions from {fdrName}: {fdrName}{Environment.NewLine}";
+            var msg = $"Deleted all extensions from {fdrName}:{Environment.NewLine}";
             foreach (var extension in extensions)
             {
                 msg += $" - {extension}{Environment.NewLine}";
             }
+            uFdrs.RemoveExtensions(fdrName);
             DisplayMessageBox(msg);
+            cbxExtensions.Items.Clear();
         }
 
         #endregion
