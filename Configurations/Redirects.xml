@@ -6,9 +6,10 @@
       <Extension>msi</Extension>
     </Extensions>
   </Folder>
-  <Folder name="Zips">
+  <Folder name="Pictures">
     <Extensions>
-      <Extension>zip</Extension>
+      <Extension>jpg</Extension>
+      <Extension>png</Extension>
     </Extensions>
   </Folder>
   <Folder name="Documents">
@@ -18,11 +19,9 @@
       <Extension>pdf</Extension>
     </Extensions>
   </Folder>
-  <Folder name="Pictures">
+  <Folder name="Zips">
     <Extensions>
-      <Extension>jpeg</Extension>
-      <Extension>jpg</Extension>
-      <Extension>png</Extension>
+      <Extension>zip</Extension>
     </Extensions>
   </Folder>
 </Folders>
